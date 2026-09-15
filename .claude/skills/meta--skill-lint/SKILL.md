@@ -1,5 +1,5 @@
 ---
-name: tools--skill-lint
+name: meta--skill-lint
 description: Validates every SKILL.md in .claude/skills/ for a well-formed YAML frontmatter with a non-empty description field, and flags duplicate skill names. Use when the user says "lint skills", "check skills", "validate SKILL.md", "skill health check", after installing a new skill, or before committing changes to .claude/skills/.
 disable-model-invocation: true
 ---
@@ -19,7 +19,7 @@ For every `.claude/skills/*/SKILL.md`:
 ## Usage
 
 ```bash
-python .claude/skills/tools--skill-lint/scripts/lint.py
+python .claude/skills/meta--skill-lint/scripts/lint.py
 ```
 
 Exit code 0 = all clean. Exit code 1 = at least one broken skill, printed with the specific problem (missing frontmatter / missing description / name mismatch / duplicate name).
@@ -29,4 +29,4 @@ Exit code 0 = all clean. Exit code 1 = at least one broken skill, printed with t
 - **Missing frontmatter / description:** open the file, add a `description:` that states when to use the skill (trigger phrases help). See any other `SKILL.md` in the repo for the format.
 - **Duplicate name:** rename one of the two skills' `name:` field or folder.
 
-Run this after adding any new skill, and before running `tools--skill-audit` (a skill audit is meaningless if some skills are silently broken).
+Run this after adding any new skill, and before running `meta--skill-audit` (a skill audit is meaningless if some skills are silently broken).

@@ -9,8 +9,8 @@ You review a candidate skill (a SKILL.md the user is about to add, or a skill al
 ## Process
 
 1. Read the candidate's `SKILL.md` — get its `description:` and scope.
-2. Run `.claude/skills/tools--skill-lint/scripts/lint.py` — if the candidate's frontmatter is broken (no description, malformed YAML), that's an automatic reject until fixed.
-3. Run `.claude/skills/tools--skill-audit/scripts/audit.py` — check the marketplace/official list and the local-duplicate-pair list it prints.
+2. Run `.claude/skills/meta--skill-lint/scripts/lint.py` — if the candidate's frontmatter is broken (no description, malformed YAML), that's an automatic reject until fixed.
+3. Run `.claude/skills/meta--skill-audit/scripts/audit.py` — check the marketplace/official list and the local-duplicate-pair list it prints.
 4. Compare the candidate's purpose against:
    - **superpowers** (process skills — debugging, TDD, code review, planning)
    - **mattpocock-skills** (25 engineering/productivity skills — spec/ticket flow, debugging, architecture, teaching)

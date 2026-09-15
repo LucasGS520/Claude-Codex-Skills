@@ -11,10 +11,10 @@ Applies the same criteria used in this repo's 154→44 cleanup (2026-09-15, see 
 ## Usage
 
 ```bash
-python .claude/skills/tools--skill-audit/scripts/audit.py
+python .claude/skills/meta--skill-audit/scripts/audit.py
 ```
 
-Run `tools--skill-lint` first — a broken (undescribed) skill can't be compared meaningfully.
+Run `meta--skill-lint` first — a broken (undescribed) skill can't be compared meaningfully.
 
 ## What it does
 
