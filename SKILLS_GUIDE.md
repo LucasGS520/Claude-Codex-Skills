@@ -1,1500 +1,181 @@
-# Guia Completo de Skills Globais
+# Guia de Skills Globais
 
 > Arquivo de referência pessoal — **não é uma skill**, não interfere no Claude Code.
-> Local: `~/.claude/SKILLS_GUIDE.md`
-> Para navegar as pastas: `ls ~/.claude/skills/`
+> Local: `~/.claude/SKILLS_GUIDE.md` · Pastas: `ls ~/.claude/skills/`
+>
+> **Histórico de limpeza:** 154 → 89 → 82 → 44 → **46 skills locais** (2026-09-15). Critério: qualidade sobre quantidade — só skills grandes, consolidadas, de framework/produto real ou de uso ativo confirmado. Cortados: 45 `marketing--*` (pack autoral fora de foco), 19 `composio--*` de nicho pessoal, `dev--security-auditor` (frontmatter inválido), 7 duplicatas de skills oficiais/mattpocock, 10 `frontend--threejs-*` (sem uso), 14 `arch--browserbase-*` (sem uso), + consolidação de redundâncias (`ai--`, `db--`, `dev--`, `frontend--`, `composio--`, `context7`). Adicionados `tools--skill-lint` + `tools--skill-audit` (+ agente `skill-reviewer`) pra não repetir esse trabalho manual. **Mesma data:** instalados 4 plugins oficiais (`claude-md-management`, `claude-security`, `hookify`, `commit-commands`) pra cobrir gaps reais sem duplicar skills locais — ver seção abaixo.
 
-================================================================================
+---
 
-## Sumário
+## Como funciona
 
-### Introdução
-- [Como as Skills Funcionam](#como-as-skills-funcionam)
-- [Setup em Máquina Nova](#setup-em-máquina-nova)
+**Ativação automática:** Claude Code lê o `description` do `SKILL.md` e ativa sozinho quando a situação encaixa.
+**Ativação manual:** pedido natural ("usa a skill de X"), referência direta, ou slash command (`/nome-da-skill`).
 
-### Blocos Temáticos
-- [Agentes IA & LLMs](#agentes-ia--llms)
-- [Análise & Dados](#análise--dados)
-- [Arquitetura & Infraestrutura](#arquitetura--infraestrutura)
-- [Banco de Dados](#banco-de-dados)
-- [Desenvolvimento & Qualidade](#desenvolvimento--qualidade)
-- [Frontend & Design](#frontend--design)
-- [Aprendizado](#aprendizado)
-- [Ferramentas & Exploração](#ferramentas--exploração)
-- [Automação & Criação de Workflows](#automação--criação-de-workflows)
-- [Produto](#produto)
-- [Marketing](#marketing)
-- [Skills Oficiais & Plugins](#skills-oficiais--plugins)
-- [Plugins de Terceiros](#plugins-de-terceiros)
-
-### Referência
-- [Fluxos de Sinergia](#fluxos-de-sinergia)
-- [Referência Rápida](#referência-rápida)
-
-================================================================================
-
-## Como as Skills Funcionam
-
-**Ativação automática:** Claude Code lê o `description` de cada `SKILL.md` e ativa a skill quando detecta que a situação se encaixa. Skills do Superpowers têm gatilhos muito precisos e ativam sem você pedir.
-
-**Ativação manual — 3 formas:**
-```
-1. Pedido natural:   "use a skill de debugging para investigar isso"
-2. Referência direta: "aplique o fluxo de TDD aqui"
-3. Slash command:    /systematic-debugging  |  /code-review
-```
-
-**Localização das skills:**
-```
-~/.claude/skills/          → skills globais locais (qualquer projeto)
-~/.claude/plugins/cache/   → plugins de marketplace (Superpowers, frontend-design, genjutsu, gsap-skills, etc.)
-<projeto>/.claude/skills/  → skills específicas de cada projeto
-```
-
-### Setup em Máquina Nova
-
-Este repositório reproduz o setup completo (skills-pasta + plugins de marketplace) com um comando:
-
-```bash
-git clone https://github.com/LucasGS520/Claude-Skills.git
-cd Claude-Skills
-./install.sh
-```
-
-**O que o script faz:**
-1. Copia toda `.claude/skills/*` do repo pra `~/.claude/skills/` (skills-pasta — portáteis, sem instalação real)
-2. Lê `plugins.json` e roda `claude plugin marketplace add` pra cada marketplace de terceiros ainda não configurado (idempotente — pula se já existe)
-3. `claude plugin marketplace update` pra garantir cache atualizado antes de instalar
-4. `claude plugin install` pra cada plugin listado (oficiais Anthropic + terceiros), idempotente
-
-**Dois mecanismos, um motivo pra cada:**
-
-| | Skills-pasta | Plugin marketplace |
+**Dois mecanismos:**
+| | Skills-pasta (`.claude/skills/`) | Plugin marketplace |
 |---|---|---|
-| Estrutura | só `SKILL.md` (+ `references/`, opcional) | `.claude-plugin/plugin.json` + `marketplace.json` |
-| Como carrega | Claude Code varre `~/.claude/skills/*/SKILL.md` direto | sistema `/plugin` — cache em `~/.claude/plugins/cache/`, registro em `~/.claude/settings.json` |
-| Portabilidade | copia pasta, funciona | precisa `marketplace add` + `install` de novo em cada máquina |
-| Por que existe | zero overhead, ideal pra skill única e autocontida | pra plugins que agregam hooks/MCP/subagents/slash-commands, ou que dependem de `${CLAUDE_PLUGIN_ROOT}` pra resolver sub-skills internas (caso do `genjutsu`) — não dá pra copiar pasta manual sem quebrar |
+| Como carrega | Claude Code varre `SKILL.md` direto | `/plugin` — cache em `~/.claude/plugins/cache/` |
 | Update | manual (reinstala) | `claude plugin update` |
+| Usa aqui | as 46 abaixo | superpowers, mattpocock-skills, code-review, frontend-design, skill-creator, code-simplifier, claude-code-setup, claude-md-management, claude-security, hookify, commit-commands, caveman, genjutsu, gsap-skills |
 
-Nem toda skill de plugin pode virar pasta sem fork (genjutsu, e os oficiais Anthropic dependem do mecanismo). Por isso o repo padroniza o **processo** (`install.sh` + `plugins.json`), não o mecanismo — reproduz os dois tipos com um comando só, independente de qual é qual.
-
-**Ao instalar uma skill nova:** se for skills-pasta, `cp` pra `.claude/skills/<categoria>--<nome>/` no repo (padrão já seguido). Se for plugin de marketplace, adiciona a entrada em `plugins.json` (marketplace + id do plugin) — não precisa editar `install.sh`.
-
-================================================================================
-
-## Agentes IA & LLMs
-
-> Skills pra criar, arquitetar e otimizar agentes, sistemas multi-agente, RAG e prompts de LLMs.
-
-### ai-- → IA & Agentes
-
-### `ai--agno` Fonte idiomática oficial
-**O que é:** Skill oficial do framework Agno — referência canônica para padrões idiomáticos, APIs e boas práticas ao construir agentes, times, workflows e integrações MCP com o Agno SDK.
-
-**Fonte:** [`agno-agi/agno-skills`](https://github.com/agno-agi/agno-skills/tree/main/plugins/agno/skills/agno) — instalada globalmente em `~/.claude/skills/ai--agno/SKILL.md`
-
-**Responsabilidades:**
-- Padrões corretos de Agent (model, tools, memory, structured output, session persistence)
-- Multi-agent Teams — modos `route`, `broadcast`, `tasks` com coordenação por líder
-- Workflows sequenciais e paralelos (Step, Parallel, Condition, Loop, Router)
-- Integração com MCP servers — stdio, SSE e Streamable HTTP — com lifecycle correto
-- AgentOS: deploy de agentes em produção
-- LearningMachine: perfis de usuário, memória de entidades e aprendizado persistente
-- Regras críticas do framework (nunca criar agentes em loops, sempre fechar conexões MCP, etc.)
-
-**Quando usar:**
-- Sempre que escrever qualquer código Agno — como regra canônica de como o framework deve ser usado
-- Implementar agentes em projetos especificios (`ResearchAgent`, `Business Agent`, etc.)
-- Decidir entre Agent vs Team vs Workflow para um caso de uso
-- Depurar comportamento inesperado de um agente (`debug_mode=True`)
-- Integrar um MCP server ao projeto em questão.
-
-**Regras críticas a seguir sempre:**
-- **Nunca** criar agentes dentro de loops — declare fora e reutilize
-- **Sempre** fechar conexões MCP com `async with` ou `try/finally`
-- Usar `output_schema` (Pydantic) para saídas estruturadas — nunca parsear texto livre
-- Métodos `async` têm prefixo `a` (`aprint_response`, `arun`, etc.)
-
-**Sinergia com:** `ai--prompt-engineer` (conteúdo dos system prompts) + `ai--agent-development` (estrutura do agente no Claude Code) + `dev--python-pro` (código Python idiomático)
-
----
-
-### `ai--agent-development`
-**O que é:** Toolkit completo para criar agentes no Claude Code — estrutura, frontmatter, system prompts, configuração de tools e definição de triggers de ativação.
-
-**Responsabilidades:**
-- Definir a estrutura de um agente (frontmatter, description, tools permitidas)
-- Escrever system prompts eficazes para agentes especializados
-- Configurar quando e como o agente é ativado
-- Validar a qualidade do agente criado
-
-**Quando usar:**
-- Criar agentes (`ResearchAgent`, `Business Agent`, etc.)
-- Estruturar qualquer agente ou subagente no Claude Code
-- Revisar e melhorar agentes existentes
-
----
-
-### `ai--multi-agent-architect`
-**O que é:** Arquiteto de sistemas multi-agente — planeja, define e especifica arquiteturas de camadas de agentes antes de qualquer código ser escrito.
-
-**Responsabilidades:**
-- Justificar quando multi-agente é realmente necessário vs. agente único com mais ferramentas
-- Definir fronteiras e responsabilidade única de cada agente (input/output contracts)
-- Escolher o tipo de arquitetura (Pipeline, Supervisor, Paralelo, Hierárquico, Debate)
-- Projetar o modelo de comunicação entre agentes (message-passing, shared memory, event-driven)
-- Especificar sistemas de memória e propriedade do estado compartilhado
-- Mapear anti-patterns estruturais a evitar (ciclos, sobreposição de responsabilidade, orchestrator executando trabalho de domínio)
-- Produzir especificação arquitetural completa antes da implementação
-
-**Diferença de `ai--agno`:** `ai--multi-agent-architect` decide **como estruturar** o sistema (topologia, coordenação, fronteiras). `ai--agno` sabe **como implementar** com o framework Agno. Use `multi-agent-architect` primeiro para o design, depois `ai--agno` para o código.
-
-**Sinergia:** `ai--multi-agent-architect` → `ai--agno` → `ai--agent-development` + `ai--prompt-engineer`
-
----
-
-### `ai--rag-architect`
-**O que é:** Especialista em sistemas RAG (Retrieval-Augmented Generation) de nível produção.
-
-**Responsabilidades:**
-- Estratégias de chunking de documentos
-- Geração e armazenamento de embeddings
-- Configuração de vector stores (pgvector, Pinecone, Weaviate)
-- Pipelines de busca híbrida (semântica + lexical)
-- Reranking para melhorar relevância
-- Avaliação de qualidade do retrieval
-
----
-
-### `ai--prompt-engineer`
-**O que é:** Especialista em escrever, refatorar e avaliar prompts para LLMs.
-
-**Responsabilidades:**
-- Escrever templates de prompt otimizados
-- Chain-of-thought e few-shot learning
-- System prompts com personas e guardrails
-- Schemas JSON para structured output
-- Function calling / tool use schemas
-- Frameworks de avaliação de prompts (evals)
-- Reduzir tokens mantendo qualidade
-
-**Sinergia com:** `ai--agent-development` — use `ai--prompt-engineer` para o conteúdo do prompt, depois `ai--agent-development` para estruturar o agente.
-
-================================================================================
-
-## Análise & Dados
-
-> Skills pra manipular, explorar, analisar dados e transformar em narrativas e insights.
-
-### data-- → Análise & Dados
-
-> Diferença de `db--`: `data--` é sobre **análise, manipulação e narrativa de dados** (pandas, relatórios, insights). `db--` é sobre **banco de dados** (SQL, schema, performance de queries).
-
-### `data--pandas-pro`
-**O que é:** Especialista em análise e manipulação de dados com pandas DataFrames.
-
-**Responsabilidades:**
-- Join de DataFrames em múltiplas chaves
-- Pivot tables e reshaping de dados
-- Resample e análise de séries temporais
-- Handling de NaN (interpolação, forward-fill)
-- GroupBy com aggregações complexas
-- Conversão de tipos e validação de dados
-- Otimização de performance em datasets grandes
-
----
-
-### `data--storyteller`
-**O que é:** Transforma dados brutos em relatórios narrativos com insights automáticos.
-
-**Responsabilidades:**
-- Processar CSV e Excel
-- Auto-detectar padrões nos dados
-- Gerar resumo executivo em linguagem natural
-- Criar visualizações e gráficos
-- Análise estatística automática
-- Exportar para PDF
-
-**Sinergia:** `data--pandas-pro` processa os dados → `data--storyteller` transforma em narrativa.
-
-================================================================================
-
-## Arquitetura & Infraestrutura
-
-> Skills pra design de APIs, arquitetura de sistemas, DevOps, monitoring, otimização e automação de browser.
-
-### arch-- → Arquitetura & Infraestrutura
-
-### `arch--architecture-designer`
-**O que é:** Especialista em design de arquitetura e estrura de sistemas de software de alto nível.
-
-**Responsabilidades:**
-- Criar diagramas de arquitetura
-- Escrever Architecture Decision Records (ADRs)
-- Avaliar trade-offs entre tecnologias
-- Desenhar interações entre componentes
-- Planejar escalabilidade e resiliência
-- Definir padrões de infraestrutura
-
-**Diferença de `arch--senior-architect`:** `architecture-designer` foca em decisões e documentação (ADRs). `arch--senior-architect` foca em diagramas visuais e análise de dependências.
-
----
-
-### `arch--senior-architect`
-**O que é:** Toolkit de arquiteto sênior com foco em diagramas e análise de dependências.
-
-**Responsabilidades:**
-- Gerar diagramas de arquitetura (C4, sequência, deployment)
-- Análise de dependências entre componentes
-- Frameworks de decisão de stack técnica
-- Design patterns de sistema
-- Identificar acoplamentos e pontos frágeis
-
----
-
-### `arch--api-designer`
-**O que é:** Especialista em design de APIs REST e GraphQL.
-
-**Responsabilidades:**
-- Modelagem de recursos e endpoints
-- Criação de specs OpenAPI/Swagger
-- Estratégias de versionamento
-- Padrões de paginação (cursor, offset)
-- Tratamento de erros padronizado
-- Autenticação e autorização na API
-
----
-
-### `arch--devops-engineer`
-**O que é:** Especialista em containerização, CI/CD e automação de deploy.
-
-**Responsabilidades:**
-- Criar e otimizar Dockerfiles
-- Configurar docker-compose
-- Pipelines CI/CD (GitHub Actions)
-- GitOps e automação de releases
-- Runbooks de incidente e operações
-- Configuração de ambientes (dev/staging/prod)
-
----
-
-### `arch--browserbase-*` (16 skills)
-**O que é:** Framework completo de automação de browser com Browserbase — planejamento, implementação, tracing, testes e deploy cloud.
-
-
-| Skill | Foco |
-|---|---|
-| `arch--browserbase-browser` | Automate web browser (CLI, CAPTCHA, proxies, Browserbase Identity, Verified browsers) |
-| `arch--browserbase-functions` | Deploy browser automation em cloud (serverless, cron, webhooks) |
-| `arch--browserbase-safe-browser` | Constrained-browser agents com domain allowlist + CDP (Agent SDK) |
-| `arch--browserbase-autobrowse` | Self-improving automation loop (task → trace → improve → retry) |
-| `arch--browserbase-browser-trace` | DevTools CDP trace capture, per-page buckets, session debug |
-| `arch--browserbase-browser-to-api` | Converte HTTP traffic (trace) em OpenAPI 3.1 spec |
-| `arch--browserbase-fetch` | Lightweight HTTP (sem browser full) — HTML/JSON, status, redirects |
-| `arch--browserbase-search` | Web search (sem browser) — URLs, titles, metadata |
-| `arch--browserbase-ui-test` | Adversarial UI testing (git diffs, accessibility, responsive, UX heuristics) |
-| `arch--browserbase-browser-use-to-stagehand` | Migrar browser-use (Python) → Stagehand (TypeScript) |
-| `arch--browserbase-agent-experience` | Audit DX de SDK/docs/skill — subagents descobrem, instalam, testam (A-F grade) |
-| `arch--browserbase-company-research` | Company discovery + ICP research (Plan→Research→Synthesize, scored report) |
-| `arch--browserbase-competitor-analysis` | Competitor intel — 4-lane deep research (marketing, signals, benchmarks, matrix) |
-| `arch--browserbase-event-prospecting` | Lead prospecting em conferências — extrai speakers, filtra ICP, deep-research |
-| `arch--browserbase-cookie-sync` | Sincronizar cookies locais (Chrome) → Browserbase session (auth) |
-| `arch--browserbase-webmcp-gen` | Author WebMCP init scripts (site-specific tools via Stagehand) |
-
-**Quando usar:** qualquer tarefa de browser automation — desde interação simples (fetch, search) até automação complex (autobrowse self-improving, tracing, deploy cloud), pesquisa competitiva e testes.
-
-**Diferença de `genjutsu:cast` (web):** `genjutsu` cobre **motion/micro-interação** dentro de uma UI já existente (CSS/JS). `browserbase-*` cobre **browser automation + data extraction** — clicar, navegar, scrape, testar, deploy.
-
-**Sinergia com:** `arch--devops-engineer` (deploy cloud functions) + `dev--test-master` (UI testing strategy) + `product--feature-forge` (automate QA flows)
-
----
-
-### `arch--monitoring-expert`
-**O que é:** Especialista em observabilidade de infraestrutura — logging, métricas, tracing e performance.
-
-**Responsabilidades:**
-- Configurar Prometheus + Grafana
-- Implementar logging estruturado (JSON logs)
-- Criar dashboards de monitoramento (RED/USE methods)
-- Definir alertas e SLOs
-- Distributed tracing com OpenTelemetry
-- Load testing com k6 ou Artillery
-- Profiling de CPU e memória
-- Capacity planning
-
-**Sinergia com:** `arch--devops-engineer` (infra e deploy) + `dev--debugging-wizard` (investigação de problemas em produção).
-
-================================================================================
-
-## Banco de Dados
-
-> Skills para manipulação, comandos, entedimento e estrutura sobre Database.
-
-### db-- → Banco de Dados
-
-### `db--postgres-pro`
-**O que é:** Especialista em PostgreSQL avançado com foco em features específicas do Postgres.
-
-**Responsabilidades:**
-- EXPLAIN e EXPLAIN ANALYZE detalhado
-- JSONB — armazenamento e queries em JSON
-- Extensões PostgreSQL (pgvector, pg_trgm, etc.)
-- Configuração de VACUUM e autovacuum
-- Replicação e alta disponibilidade
-- Row-Level Security (RLS) para multi-tenant
-- Full-text search nativo
-
-**Diferença de `db--sql-pro`:** `db--postgres-pro` é específico para features do Postgres. `db--sql-pro` é sobre escrever SQL complexo em qualquer banco.
-
----
-
-### `db--sql-pro`
-**O que é:** Especialista em SQL complexo e design de schema.
-
-**Responsabilidades:**
-- Queries complexas com múltiplos JOINs
-- Window functions (ROW_NUMBER, LAG, LEAD, etc.)
-- CTEs simples e recursivos
-- Aggregações avançadas
-- Migração entre dialetos SQL
-- EXPLAIN/ANALYZE e benchmarking antes/depois
-
----
-
-### `db--database-optimizer`
-**O que é:** Especialista em performance de banco de dados PostgreSQL e MySQL.
-
-**Responsabilidades:**
-- Análise de query plans e gargalos
-- Design e criação de índices otimizados
-- Reescritas de queries para performance
-- Particionamento de tabelas grandes
-- Resolução de lock contention
-- Tuning de configurações do PostgreSQL
-
-**Sinergia:** Use após `db--sql-pro` — primeiro escreve a query certa, depois otimiza.
-
-================================================================================
-
-## Desenvolvimento & Qualidade
-
-> Skills pra escrever, revisar, testar, refatorar, debugar e securizar código — toda cadeia de qualidade.
-
-### dev-- → Qualidade & Processo
-
-### `dev--python-pro`
-**O que é:** Especialista em Python 3.11+ moderno com foco em qualidade, type safety e práticas de engenharia robustas.
-
-**Responsabilidades:**
-- Código Python com type annotations completas
-- Configuração de mypy em strict mode
-- Async/await com asyncio e padrões corretos
-- Testes com pytest (fixtures, mocking, parametrize)
-- Linting com black e ruff
-- Dataclasses, Pydantic models, dependency injection
-- Logging estruturado e error handling
-
----
-
-### `dev--debugging-wizard`
-**O que é:** Investigador técnico de bugs — foca em análise ativa de evidências.
-
-**Responsabilidades:**
-- Parsear e interpretar stack traces
-- Correlacionar entradas de log para identificar o ponto de falha
-- Traçar fluxo de execução linha a linha
-- Hipóteses baseadas em evidências
-- Root cause analysis
-
-**Diferença do `superpowers:systematic-debugging`:** A skill oficial impõe **metodologia** (processo antes de propor fix). `dev--debugging-wizard` é o **investigador técnico** que abre logs e traça execução. Use os dois juntos: sistemático primeiro, wizard depois.
-
----
-
-### `dev--code-reviewer`
-**O que é:** Revisor de código amplo — cobre qualidade, segurança e arquitetura em uma passagem.
-
-**Responsabilidades:**
-- Identificar bugs lógicos e erros de runtime
-- Detectar vulnerabilidades (SQL injection, XSS, insecure deserialization)
-- Code smells e problemas de manutenibilidade
-- N+1 queries e problemas de performance
-- Problemas de nomenclatura e clareza
-- Concerns arquiteturais
-- Relatório priorizado por severidade
-
-**Diferença do `code-review:code-review` (oficial):** O oficial tem integração nativa com GitHub (`--comment` posta inline no PR, `--fix` aplica os fixes). `dev--code-reviewer` tem análise mais detalhada. Para PRs no GitHub, prefira o oficial. Para revisão local, use este.
-
----
-
-### `dev--code-refactoring`
-**O que é:** Especialista em refatoração com SOLID e clean code, sem quebrar comportamento.
-
-**Responsabilidades:**
-- Identificar code smells e hotspots arriscados
-- Propor plano de refatoração em passos incrementais
-- Aplicar princípios SOLID (SRP, OCP, DIP...)
-- Eliminar duplicação sem over-engineering
-- Manter comportamento estável durante refatoração
-- Atualizar testes após mudanças
-
----
-
-### `dev--security-reviewer`
-**O que é:** Auditor de segurança — gera relatório estruturado com severidade e remediação.
-
-**Responsabilidades:**
-- SAST (Static Application Security Testing)
-- Identificar vulnerabilidades por severidade (Critical/High/Medium/Low)
-- Análise de infraestrutura e configurações
-- Secrets scanning
-- Compliance checks (LGPD, OWASP)
-- Gerar relatório com comandos de remediação
-
-**Sinergia:** Use após `dev--code-reviewer` — review geral primeiro, depois auditoria de segurança especializada.
-
----
-
-### `dev--secure-code-guardian`
-**O que é:** Implementador de código seguro — age no código, não apenas audita.
-
-**Responsabilidades:**
-- Implementar hashing seguro (bcrypt, argon2)
-- Sanitizar queries com parameterized statements
-- Configurar CORS e CSP headers corretamente
-- Validação de input com Zod (TS) ou Pydantic (Python)
-- Configurar JWT tokens com segurança
-- Prevenir OWASP Top 10
-
-**Diferença de `dev--security-reviewer`:** O reviewer **identifica** problemas. O guardian **implementa** as correções. Use na sequência: reviewer → guardian.
-
----
-
-### `dev--test-master`
-**O que é:** Gerador completo de suites de teste — todos os tipos e camadas.
-
-**Responsabilidades:**
-- Gerar testes unitários com mocking
-- Testes de integração
-- Testes E2E
-- Análise de cobertura e gaps
-- Test plans e estratégias de QA
-- Performance testing (k6, Artillery)
-- Security testing (OWASP methods)
-- Debugging de testes flaky
-
-**Diferença do `superpowers:test-driven-development`:** TDD é **metodologia** (escreve teste ANTES do código). `dev--test-master` é **execução** (gera a suite de testes). Use TDD para disciplina de processo, test-master para gerar os testes em si.
-
----
-
-### `dev--security-auditor`
-**O que é:** Auditor de segurança de dependências npm/Node.js.
-
-**Responsabilidades:**
-- Executar `npm audit --json` e parsear o output
-- Classificar CVEs por severidade (Critical → Low)
-- Distinguir dependências diretas de transitivas
-- Gerar relatório markdown com comandos de remediação
-- Suporte a `security-exceptions.json` para riscos aceitos
-- CI-friendly com exit codes corretos
-
-**Sinergia:** Use junto de `dev--security-reviewer` (auditoria do código) + `dev--secure-code-guardian` (implementa correções). O trio cobre o ciclo completo de segurança.
-
-**Status GitHub:** local-only por enquanto — não aparece em `origin/main`.
-
----
-
-### `dev--fullstack-guardian`
-**O que é:** Implementador de features full-stack com segurança em todas as camadas simultaneamente.
-
-**Responsabilidades:**
-- Frontend (componente React) + Backend (endpoint FastAPI) + Banco (migration) em uma passagem
-- Segurança em cada camada: auth, input validation, output encoding, parameterized queries
-- Conexão de UI → API → banco de forma coesa
-- CRUD com formulários conectados a endpoints reais
-
-**Diferença de usar skills individuais:** Ao usar `fastapi-expert` + `react-expert` separadamente, você pode criar inconsistências entre camadas. `dev--fullstack-guardian` considera as três camadas ao mesmo tempo, garantindo contratos corretos.
-
-================================================================================
-
-## Frontend & Design
-
-> Skills pra UI/UX, design visual, motion, animações, Three.js e design systems — tudo front-end.
-
-### frontend-- → Frontend & UI
-
-### `frontend--typescript-pro`
-**O que é:** Especialista em TypeScript avançado — além do básico de tipos.
-
-**Responsabilidades:**
-- Generics complexos e inferência de tipos
-- Conditional types e mapped types
-- Branded types para type safety forte
-- Type guards customizados
-- Utility types (Pick, Omit, ReturnType, etc.)
-- tRPC para type safety end-to-end frontend-backend
-- Configuração de monorepo TypeScript
-
----
-
-### `frontend--design-dna`
-**O que é:** Workflow de 3 fases pra extrair, estruturar e aplicar identidade visual — design system (tokens mensuráveis), design style (percepção qualitativa) e visual effects (Canvas/WebGL/3D/shaders/scroll).
-
-**As 3 dimensões:**
-1. **design_system** — cor, tipografia, spacing, layout, shape, elevation, motion, componentes (valores exatos: hex, px, rem)
-2. **design_style** — mood, linguagem visual, composição, imagery, interaction feel, brand voice (qualitativo)
-3. **visual_effects** — Canvas, WebGL, 3D, partículas, shaders, scroll effects, cursor effects, glassmorphism (o que CSS puro não expressa)
-
-**Fases:**
-- **Structure** — mostra o schema completo (`references/schema.md`) quando o usuário pede a estrutura
-- **Analyze** — recebe imagens/screenshots/URLs de referência e extrai um JSON Design DNA completo, campo por campo, nas 3 dimensões
-- **Generate** — recebe DNA JSON + conteúdo e gera o design (`references/generation-guide.md`), escolhendo tecnologia pela intensidade do efeito (CSS/SVG leve → Canvas 2D/GSAP/Lottie médio → Three.js/GLSL/Pixi.js pesado)
-
-**Quando usar:** "extrai o design DNA disso", "analisa esse design/screenshot/site", "gera um design a partir desse JSON", replicar estilo de uma referência em conteúdo novo.
-
-**Diferença de `frontend-design:frontend-design`:** `frontend-design` dá direção visual geral em prosa (estética, tipografia, paleta) sem formato estruturado. `design-dna` produz **JSON estruturado e replicável** nas 3 dimensões, com pipeline extract→apply — serve pra clonar/adaptar um estilo existente com precisão, não só orientar uma escolha nova.
-
-**Sinergia com:** `frontend-design:frontend-design` (direção quando não há referência) + `genjutsu:paint` (MASTER.md de design system pode nascer do JSON extraído) + `frontend--threejs-*`/`gsap-skills:gsap-*` (implementação dos visual_effects pesados)
-
----
-
-### `frontend--motion-design`
-**O que é:** Princípios de motion design pra animações e transições — timing, easing, coreografia e princípios Disney adaptados pra UI. Agnóstico de biblioteca: funciona com CSS, Framer Motion, GSAP, Lottie, Spring ou qualquer sistema de animação.
-
-**Responsabilidades:**
-- Três pilares obrigatórios antes de decisão técnica: Intenção Emocional, Narrativa Visual, Motion Craft
-- Checklist de 8 passos (alvo emocional, personalidade de motion, propriedade primária, duração, easing, hero element, camadas secundárias, regras de 1/3)
-- Tabelas de timing/easing e princípios de animação Disney aplicados a interface
-- Padrões de choreography (entrance/exit, multi-elemento, ambient-continuous, state-feedback)
-- Framework de decisão + checklist de qualidade + troubleshooting
-
-**Quando usar:**
-- Criar animações de UI (botões, cards, modais, transições de página)
-- Micro-interações e feedback animado
-- Loading/success/error states
-- Sequências multi-elemento com stagger
-- Estabelecer identidade de motion de marca
-
-**Diferença de `genjutsu:cast`/`genjutsu:paint`:** `motion-design` é biblioteca de **princípios** (o quê e por quê da animação — timing, easing, narrativa). `genjutsu` é pipeline de **implementação** multi-stack (o como — código GSAP/Framer/Compose/SwiftUI, scan de stack, audit). Use `motion-design` pra fundamentar a decisão de motion, `genjutsu` pra executar tecnicamente.
-
-**Sinergia com:** `genjutsu:cast`/`genjutsu:paint` (implementação técnica) + `frontend--ui-ux-expert` (acessibilidade/performance da UI)
-
----
-
-### `frontend--threejs-*` (10 skills)
-**O que é:** Coleção de referência Three.js — API precisa, exemplos funcionais e patterns de performance, auditados contra a documentação oficial (r160+).
-
-| Skill | Foco |
-|---|---|
-| `frontend--threejs-fundamentals` | Scene, cameras, renderer, hierarquia Object3D, coordenadas |
-| `frontend--threejs-geometry` | Shapes built-in, BufferGeometry, geometria custom, instancing |
-| `frontend--threejs-materials` | PBR, basic/phong/standard, shader materials |
-| `frontend--threejs-lighting` | Tipos de luz, sombras, environment lighting, light helpers |
-| `frontend--threejs-textures` | Tipos de textura, UV mapping, environment maps, render targets |
-| `frontend--threejs-animation` | Keyframe, skeletal, morph targets, animation mixing |
-| `frontend--threejs-loaders` | GLTF/GLB, texturas, padrões async, caching |
-| `frontend--threejs-shaders` | GLSL básico, ShaderMaterial, uniforms, efeitos custom |
-| `frontend--threejs-postprocessing` | EffectComposer, bloom, DOF, screen effects, passes custom |
-| `frontend--threejs-interaction` | Raycasting, camera controls, mouse/touch, seleção de objeto |
-
-**Diferença de `genjutsu:cast` (sub-skill `threejs-r3f`):** `genjutsu` cobre **React Three Fiber** (integração React declarativa) dentro do pipeline thesis→implement→audit, carregado internamente e nunca invocado direto. `frontend--threejs-*` é **API Three.js vanilla/addons** pura, cada skill invocável e combinável independente, sem pipeline de discovery/thesis.
-
-**Sinergia com:** `genjutsu:cast` (se o projeto usa React Three Fiber, cast cobre a camada declarativa; use threejs-* pra API de baixo nível) + `frontend--motion-design` (timing/easing de animações 3D)
-
----
-
-### `frontend--ui-ux-expert`
-**O que é:** Implementador de UI React acessível — 6 fases obrigatórias de processo.
-
-**Responsabilidades (6 fases):**
-1. **Estudo do Style Guide** — internalize o design system antes de qualquer código
-2. **Planejamento de componentes** — mapeie hierarquia e responsabilidades
-3. **Implementação** — shadcn/ui + Tailwind CSS + TanStack Query
-4. **Validação de acessibilidade** — WCAG 2.1 AA obrigatório
-5. **Core Web Vitals** — LCP, CLS, FID no verde
-6. **Verificação de testes** — todos os E2E passando
-
-**Diferença do `frontend-design:frontend-design`:** `frontend-design` decide **como deve parecer** (estética, tipografia, paleta). `frontend--ui-ux-expert` decide **como implementar tecnicamente** (componentes, acessibilidade, performance). Use em sequência.
-
-================================================================================
-
-## Aprendizado
-
-> Skills pra aprender libs externas, entender código, contextualização e aprendizado sobre o projeto.
-
-### learn-- → Aprendizado & Descoberta
-
-### `learn--project-mentor`
-**O que é:** Guia de onboarding para qualquer repositório externo.
-
-**Responsabilidades:**
-- Explicar como um projeto está estruturado
-- Mapear os principais módulos e suas interações
-- Identificar padrões arquiteturais usados
-- Funciona também com papers acadêmicos + código
-
----
-
-### `learn--context7-docs`
-**O que é:** Fetch de documentação atualizada + exemplos de código pra qualquer biblioteca, framework, SDK ou ferramenta — prioriza docs versionadas sobre training data.
-
-**Responsabilidades:**
-- Resolver nome da biblioteca pra ID no registry Context7
-- Buscar docs versionadas (ignora training data potencialmente outdated)
-- Fetch de exemplos de código, API signatures, config options
-- Suportar migration guides entre versões
-
-**Diferença de `learn--code-teacher`:** `code-teacher` explica **código existente** (fluxo, design decisions). `context7-docs` busca **documentação oficial atualizada** pra qualquer tech (mais rápido pra lookup puro).
-
-**Sinergia com:** `tools--context7-cli`/`tools--context7-mcp` (como a ferramenta é usada) + qualquer skill de implementação quando verificar API
-
----
-
-### `learn--code-teacher`
-**O que é:** Professor interativo de código — explica o que o código faz e por quê.
-
-**Responsabilidades:**
-- Explicar fluxo de execução passo a passo
-- Revelar design decisions ocultas
-- Identificar edge cases e comportamentos não óbvios
-- Explicar impacto de mudanças em outras partes do sistema
-- Ensinar debugging e raciocínio sobre o código
-
-**Diferença de `learn--project-mentor`:** `project-mentor` explica o **projeto** (macro). `code-teacher` explica **blocos de código específicos** (micro).
-
----
-
-### `learn--spec-miner`
-**O que é:** Reverse engineer de codebases — extrai especificações de código sem documentação.
-
-**Responsabilidades:**
-- Mapear dependências entre módulos
-- Identificar business logic não documentada
-- Gerar documentação de API a partir do código-fonte
-- Descobrir comportamentos implícitos e contratos ocultos
-- "Code archaeology" — entender código legado
-
-**Atenção:** Esta skill é para **extrair specs de código existente**, não para documentos textuais.
-
-================================================================================
-
-## Ferramentas & Exploração
-
-> Skills pra explorar codebase, criar gráficos de conhecimento, melhorar consumo de tokens, navegação e otimizar fluxo de trabalho e desenvolvimento.
-
-### tools-- → Ferramentas
-
-### `tools--caveman` Sistema de compressão de output
-**O que é:** Modo ultra-comprimido — reduz output em ~65% usando linguagem caveman enquanto preserva precisão técnica completa.
-
-**Responsabilidades:**
-- 6 níveis de intensidade: lite, full (padrão), ultra, wenyan-lite, wenyan-full, wenyan-ultra
-- Dropa artigos, preenchimento, pleasantries, hedging
-- Mantém código, símbolos, strings de erro, URLs exatos
-- Auto-clareza: desativa para warnings de segurança, ações irreversíveis, sequências ambíguas
-
-**Quando usar:**
-- Sessões longas quando token limit crítico
-- Batch edits múltiplos arquivos
-- Feedback denso de code review sem ruído
-
-**Ativação:** Automática via hook SessionStart. Manual com `/caveman` ou "caveman mode". Desativa com "stop caveman".
-
-**Status GitHub:** local-only por enquanto — não aparece em `origin/main`.
-
----
-
-### `tools--cavecrew`
-**O que é:** Guia de decisão para delegar trabalho a subagentes com output comprimido no estilo Caveman, reduzindo o custo de contexto quando o resultado do subagente volta para a thread principal.
-
-**Responsabilidades:**
-- Decidir quando usar `cavecrew-investigator`, `cavecrew-builder` ou `cavecrew-reviewer`
-- Diferenciar cavecrew de agentes vanilla como `Explore` e `Code Reviewer`
-- Definir contratos de output curtos e previsíveis para investigação, edição e review
-- Orientar padrões de encadeamento: localizar → corrigir → revisar
-- Evitar uso indevido em refactors grandes, features multi-arquivo ou feedback que precisa de prosa
-
-**Quando usar:**
-- Investigar símbolos, chamadas, arquivos e pontos de uso com baixo custo de contexto
-- Fazer edição cirúrgica em até 2 arquivos já identificados
-- Revisar diff com achados objetivos, sem explicação longa
-- Economizar contexto em sessões longas com muita delegação
-
-**Status GitHub:** local-only por enquanto — não aparece em `origin/main`.
-
----
-
-### `tools--caveman-commit`
-**O que é:** Gerador de mensagens de commit ultra-concisas em Conventional Commits.
-
-**Responsabilidades:**
-- Criar subject no formato `<type>(<scope>): <summary>`
-- Manter subject preferencialmente com até 50 caracteres
-- Escrever corpo só quando o motivo não é óbvio, há breaking change, migração, segurança ou revert
-- Evitar ruído como "this commit", atribuição a IA, emoji e repetição de nomes de arquivo
-- Produzir mensagem pronta em bloco de código, sem executar `git commit`
-
-**Quando usar:**
-- Escrever mensagem de commit
-- Gerar commit message a partir de diff staged/unstaged
-- Padronizar commits com `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, etc.
-
-**Status GitHub:** local-only por enquanto — não aparece em `origin/main`.
-
----
-
-### `tools--caveman-compress`
-**O que é:** Compressor de arquivos de memória/prosa (`CLAUDE.md`, todos, preferences, `.md`, `.txt`) para reduzir tokens preservando conteúdo técnico.
-
-**Responsabilidades:**
-- Comprimir texto natural removendo filler, hedging, redundância e pleasantries
-- Preservar exatamente code blocks, inline code, URLs, comandos, paths, números e frontmatter
-- Manter estrutura Markdown: headings, listas, tabelas e hierarquia
-- Criar backup human-readable como `<arquivo>.original.md`
-- Validar saída e evitar sobrescrever se a compressão falhar
-
-**Quando usar:**
-- Reduzir custo de contexto de arquivos de memória longos
-- Compactar documentação operacional repetitiva
-- Preparar `CLAUDE.md` ou preferências para sessões com limite de tokens apertado
-
-**Atenção:** não usar em código, JSON, YAML, TOML, `.env`, lockfiles, CSS, HTML, SQL ou shell scripts.
-
-**Status GitHub:** local-only por enquanto — não aparece em `origin/main`.
-
----
-
-### `tools--caveman-help`
-**O que é:** Cartão de referência rápida dos modos, comandos e skills Caveman.
-
-**Responsabilidades:**
-- Exibir modos `lite`, `full`, `ultra`, `wenyan-lite`, `wenyan-full`, `wenyan-ultra`
-- Listar comandos `/caveman`, `/caveman-commit`, `/caveman-review`, `/caveman-compress`, `/caveman-help`
-- Explicar como desativar com "stop caveman" ou "normal mode"
-- Documentar configuração de modo padrão via `CAVEMAN_DEFAULT_MODE` ou `~/.config/caveman/config.json`
-
-**Quando usar:**
-- Lembrar os comandos disponíveis
-- Ver opções de intensidade
-- Descobrir como ativar, desativar ou configurar Caveman
-
-**Status GitHub:** local-only por enquanto — não aparece em `origin/main`.
-
----
-
-### `tools--caveman-review`
-**O que é:** Formato de code review ultra-conciso: uma linha por achado com localização, problema e correção.
-
-**Responsabilidades:**
-- Produzir comentários no formato `L<linha>: <problema>. <fix>.`
-- Usar severidades opcionais: bug, risk, nit e q
-- Remover hedging e preâmbulos de review
-- Preservar símbolos, funções e variáveis exatos em backticks
-- Sair do modo terse quando segurança, arquitetura ou onboarding exigirem explicação completa
-
-**Quando usar:**
-- Revisar PR/diff com comentários prontos para colar
-- Gerar feedback objetivo e denso
-- Reduzir ruído em revisões repetitivas
-
-**Limite:** não aplica fixes, não aprova PR e não executa linters.
-
-**Status GitHub:** local-only por enquanto — não aparece em `origin/main`.
-
----
-
-### `tools--caveman-stats`
-**O que é:** Skill acionada por hook para mostrar uso real de tokens e economia estimada da sessão atual.
-
-**Responsabilidades:**
-- Ler estatísticas reais do log de sessão do Claude Code
-- Exibir números via hook `caveman-mode-tracker`
-- Bloquear a resposta do modelo e mostrar o resultado calculado pelo hook
-- Evitar estimativa manual pelo LLM
-
-**Quando usar:**
-- Rodar `/caveman-stats`
-- Verificar economia de tokens durante uma sessão longa
-- Auditar impacto real do modo Caveman
-
-**Status GitHub:** local-only por enquanto — não aparece em `origin/main`.
-
----
-
-### `tools--context7-cli` e `tools--context7-mcp`
-**O que é:** Ferramentas CLI e MCP do Context7 pra fetch de documentação atualizada e gerenciamento de skills.
-
-**`tools--context7-cli` — ctx7 CLI:**
-- Fetch de docs versionadas pra qualquer biblioteca (resolve library ID → query docs)
-- Gerenciar skills (install/search/suggest/list/remove/generate)
-- Setup de Context7 MCP pra Claude Code/Cursor/OpenCode
-- Quando usar: documentação desatualizada, verificar API signatures, setup MCP
-
-**`tools--context7-mcp` — Context7 MCP Server:**
-- Protocol MCP pra integrar Context7 como ferramenta nativa do agente
-- Fetch docs, gerenciar skills, listar bibliotecas
-- Quando usar: setup MCP, usar context7 via MCP dentro do agente
-
-**Diferença de `learn--context7-docs`:** `context7-cli`/`context7-mcp` ensinam **como usar a ferramenta**. `context7-docs` é o workflow de **lookup de docs** pra qualquer biblioteca (mais alto nível, usa CLI internamente).
-
-**Sinergia com:** `learn--context7-docs` (workflow de lookup) + qualquer skill de implementação (quando precisa verificar API desatualizada)
-
----
-
-### `tools--graphify`
-**O que é:** Transforma qualquer pasta de arquivos em grafo de conhecimento navegável com detecção de comunidades, auditoria de mudanças e três saídas: HTML interativo, JSON pronto para GraphRAG e relatório legível em Markdown.
-
-**Propósito central:** Responder perguntas sobre a arquitetura e relacionamentos de arquivos de um codebase — especialmente quando `tools--graphify-out/` existe, questões devem ser tratadas como queries do tools--graphify primeiro.
-
-**Responsabilidades:**
-- Gerar grafo de conhecimento persistente do codebase (`tools--graphify-out/graph.json`)
-- Criar visualização interativa HTML com comunidades detectadas
-- Fornecer três ferramentas de query para exploração:
-  - `tools--graphify query "<pergunta>"` — retorna subgrafo relevante
-  - `tools--graphify path "<A>" "<B>"` — mostra relacionamentos entre conceitos
-  - `tools--graphify explain "<conceito>"` — explica conceitos focados
-- Gerar `GRAPH_REPORT.md` com análise de arquitetura
-- Manter grafo atualizado com `tools--graphify update .` (incremental, AST-only)
-- Suportar entrada múltipla (arquivos locais, GitHub repos, papers + código)
-
-**Quando usar:**
-1. **Entender arquitetura de um codebase** — use query/path/explain para navegação rápida
-2. **Responder perguntas técnicas sobre o projeto** — codebase questions → tools--graphify query ANTES de grep/read bruto
-3. **Analisar relacionamentos entre módulos** — entender acoplamentos, dependências cruzadas, comunidades
-4. **Onboarding em repositório novo** — construir grafo, ler `GRAPH_REPORT.md`, depois codebase é navegável
-5. **Arquivos modificados recentemente** — `tools--graphify update .` mantém o grafo sincronizado com mudanças de código
-
-**Como usar:**
+### Setup em máquina nova
 ```bash
-# Pipeline completo (gera HTML + JSON + GRAPH_REPORT.md)
-tools--graphify                                           # codebase atual
-tools--graphify <caminho>                                 # pasta específica
-tools--graphify https://github.com/<owner>/<repo>        # clonar repo e processar
-tools--graphify <repo1> <repo2> ...                       # múltiplos repos com merge
-
-# Modos e opções
-tools--graphify <caminho> --mode deep                    # extração richer com mais inferências
-tools--graphify <caminho> --update                       # incremental - só novos/alterados
-tools--graphify <caminho> --directed                     # grafo direcionado (preserva A→B)
-tools--graphify <caminho> --cluster-only                 # reclusterizar grafo existente
-tools--graphify <caminho> --no-viz                       # JSON + report, pula visualização
+git clone https://github.com/LucasGS520/Claude-Skills.git && cd Claude-Skills && ./install.sh
 ```
-
-**Outputs:**
-- `tools--graphify-out/` → diretório com todos os resultados
-- `tools--graphify-out/index.html` → visualização interativa (abrir no browser)
-- `tools--graphify-out/graph.json` → JSON para uso programático ou GraphRAG
-- `tools--graphify-out/GRAPH_REPORT.md` → análise legível de arquitetura
-- `tools--graphify-out/wiki/` → índice de navegação (se `--obsidian` usado)
-
-**Regras ao usar:**
-1. Se `tools--graphify-out/graph.json` existe, sempre use `query/path/explain` para codebase questions ANTES de grep/read
-2. Se `tools--graphify-out/wiki/index.md` existe, use para navegação ampla ao invés de browsar fonte bruto
-3. Após modificações de código, rodar `tools--graphify update .` mantém o grafo consistente (AST-only, sem custo de API)
-4. Use `GRAPH_REPORT.md` para análise arquitetural ampla quando query/path/explain insuficientes
-
-**Sinergia com:** `learn--project-mentor` (understand project structure) + `learn--spec-miner` (reverse-engineer code) + `dev--code-reviewer` (entender impacto arquitetural de mudanças)
-
-================================================================================
-
-## Automação & Criação de Workflows
-
-> Skills pra orquestração de workflows, integração de APIs e automação de processos com n8n.
-
-### n8n-- → Automação N8N
-
-> Skills oficiais do n8n — fonte: [`n8n-io/skills`](https://github.com/n8n-io/skills). **Regra central:** invocar a skill correspondente **antes** de qualquer ação no n8n — o MCP do n8n evolui mais rápido que o training cutoff de qualquer modelo.
-
-### `n8n--using-skills` Meta-skill roteadora
-**O que é:** Protocolo sempre ativo — roteia para a skill correta e estabelece regras transversais.
-
-**Regras não-negociáveis:**
-1. Invocar skill relevante ANTES de qualquer ação n8n
-2. `validate_workflow` antes de publicar + `get_workflow_details` após criar/atualizar
-3. Tokens e secrets **nunca** em campos de texto — usar sistema de credenciais do n8n
-
-### Demais skills n8n
-
-| Skill | Foco |
-|---|---|
-| `n8n--workflow-lifecycle` | Design, estrutura e publicação de workflows |
-| `n8n--node-configuration` | Config de nós (HTTP, webhooks, banco, Slack/Gmail, AI, triggers) |
-| `n8n--expressions` | Expressões `{{...}}`, referências `$json`/`$node`, Luxon |
-| `n8n--loops` | Processar múltiplos itens, batches, paginação, fan-out |
-| `n8n--subworkflows` | Modularização e reuso de lógica |
-| `n8n--error-handling` | Tratamento de erros, error workflows, try/catch |
-| `n8n--agents` | AI Agents, LLM chains, RAG, embeddings, structured output |
-| `n8n--credentials-and-security` | Autenticação, OAuth, API keys, secrets |
-| `n8n--code-nodes` | Code node JavaScript/Python, transformações com `$input`/`$json` |
-| `n8n--data-tables` | Data Tables, idempotência, dedup, estado cross-execução |
-| `n8n--binary-and-data` | Arquivos, PDFs, multimodal, upload/download |
-| `n8n--debugging` | Investigação de workflows com erro ou output inesperado |
-| `n8n--extending-mcp` | Expor workflows n8n como tools MCP para agentes |
-
-### `n8n--workflow-lifecycle`
-**O que é:** Skill de ciclo de vida completo de workflows n8n — planejar, construir, validar, testar, publicar e fazer handoff.
-
-**Responsabilidades:**
-- Definir estrutura visual, nomes, descrições e organização do workflow
-- Aplicar as etapas PLAN → BUILD → VALIDATE → TEST → PUBLISH → HANDOFF
-- Rodar `validate_workflow` e conferir `connections` com `get_workflow_details`
-- Tratar limitações de folders, projetos e acesso MCP
-- Evitar publicar sem teste representativo e sem verificação das credenciais
-
-**Quando usar:** qualquer criação, edição, organização, publicação, deploy ou validação final de workflow n8n.
+Copia `.claude/skills/*` pra `~/.claude/skills/` + instala plugins de `plugins.json` (marketplaces de terceiros + oficiais Anthropic), idempotente.
 
 ---
 
-### `n8n--node-configuration`
-**O que é:** Especialista em configurar nós n8n com parâmetros corretos, dependências entre campos e operações suportadas.
+## Skills oficiais / plugins (mantidas sempre — não editar)
 
-**Responsabilidades:**
-- Consultar tipos de nós e parâmetros reais antes de configurar
-- Configurar HTTP, Webhook, banco, comunicações, AI, triggers, Merge e Switch
-- Evitar assumir nomes de parâmetros ou defaults
-- Validar configurações de nós individualmente quando necessário
-- Tratar casos especiais como Merge com múltiplas entradas e fallback de Switch
+Prefira estas antes de qualquer skill custom equivalente. Ficam em `~/.claude/plugins/cache/`, atualizadas pelo sistema.
 
-**Quando usar:** sempre que criar ou alterar qualquer node no workflow.
-
----
-
-### `n8n--expressions`
-**O que é:** Especialista em expressões n8n `{{ ... }}`, `$json`, `$node`, Luxon e transformações inline.
-
-**Responsabilidades:**
-- Escrever expressões corretas para campos dinâmicos
-- Usar `$json`, `$input`, `$node` e dados de execuções anteriores corretamente
-- Fazer date math e formatação com Luxon
-- Preferir expressions/Edit Fields quando não há necessidade real de Code node
-- Depurar erros de expressão e referências quebradas
-
-**Quando usar:** qualquer campo com `{{...}}`, mapeamento dinâmico, transformação simples ou erro de expressão.
-
----
-
-### `n8n--loops`
-**O que é:** Guia para processar múltiplos itens, batches, paginação e padrões de repetição no n8n.
-
-**Responsabilidades:**
-- Diferenciar iteração automática por item de Loop Over Items explícito
-- Configurar batches e paginação HTTP
-- Evitar loops desnecessários quando o node já processa item-a-item
-- Projetar fan-out e execução assíncrona com subworkflows quando fizer sentido
-- Tratar agregação e recombinação de resultados
-
-**Quando usar:** listas, batches, paginação, "for each", processamento em massa ou fan-out.
-
----
-
-### `n8n--subworkflows`
-**O que é:** Skill de modularização e reuso de lógica via subworkflows.
-
-**Responsabilidades:**
-- Decidir quando extrair lógica para subworkflow
-- Definir contratos de input/output com `Execute Workflow Trigger`
-- Usar `Define Below` quando subworkflow virar tool de agent ou MCP
-- Nomear subworkflows para descoberta futura
-- Separar contratos divergentes, como JSON vs binary ou sync vs async
-
-**Quando usar:** lógica reutilizável, chunks com mais de alguns nós, ferramentas para agents, ou workflow que precisa virar módulo.
-
----
-
-### `n8n--error-handling`
-**O que é:** Especialista em tratamento de erros para workflows de produção.
-
-**Responsabilidades:**
-- Criar branches de erro em nodes falíveis
-- Definir error workflows e respostas HTTP adequadas
-- Separar erros do caller (4xx) de falhas internas (5xx)
-- Padronizar shapes de resposta de erro
-- Validar comportamento quando APIs, bancos ou serviços externos falham
-
-**Quando usar:** workflows publicados, webhooks, integrações externas ou qualquer fluxo que precisa falhar de forma controlada.
-
----
-
-### `n8n--agents`
-**O que é:** Especialista em features de IA no n8n: AI Agent, LLM chains, tool calling, memória, RAG e structured output.
-
-**Responsabilidades:**
-- Escolher entre Agent, Basic LLM Chain, Text Classifier, Information Extractor e outros nodes LangChain
-- Configurar model, memory, tools e output parser como subnodes
-- Escrever nomes e descrições de tools como parte do prompt
-- Usar structured output com parser e auto-fix
-- Modelar subworkflows como tools com inputs tipados via `fromAi()`
-
-**Quando usar:** agent, chat assistant, LLM com tools, system prompt, memory, RAG, embeddings, output parser ou qualquer node `@n8n/n8n-nodes-langchain.*`.
-
----
-
-### `n8n--credentials-and-security`
-**O que é:** Skill de autenticação, credenciais e segurança em workflows n8n.
-
-**Responsabilidades:**
-- Usar o sistema de credenciais para tokens, API keys, OAuth e senhas
-- Nunca colocar secrets em campos de texto, Set nodes ou código
-- Listar credenciais existentes e vincular por ID quando possível
-- Orientar criação manual de credenciais quando o MCP não puder criá-las
-- Tratar secrets colados no chat como comprometidos e recomendar rotação
-
-**Quando usar:** API key, bearer token, OAuth, headers de auth, serviços externos ou qualquer configuração com segredo.
-
----
-
-### `n8n--code-nodes`
-**O que é:** Guia para decidir quando usar Code node e como escrever JavaScript/Python em n8n.
-
-**Responsabilidades:**
-- Tratar Code node como último recurso
-- Preferir expression ou arrow function em Edit Fields para transformações simples
-- Usar JavaScript por padrão, Python só quando explicitamente pedido
-- Aplicar padrões corretos para `$input`, `$json`, múltiplas fontes e retorno de itens
-- Evitar lógica opaca que poderia ser representada por nodes nativos
-
-**Quando usar:** Code node, JavaScript/Python, custom logic, transformações complexas ou tentação de "resolver no código".
-
----
-
-### `n8n--data-tables`
-**O que é:** Especialista em Data Tables do n8n para estado persistente, deduplicação e dados tabulares simples.
-
-**Responsabilidades:**
-- Projetar schemas com colunas padrão e tipos suportados
-- Modelar dedup, idempotência e estado cross-execução
-- Evitar usar Data Tables como banco relacional completo
-- Trabalhar com limitações de tipos, chaves e relacionamentos
-- Mapear operações CRUD dentro de workflows
-
-**Quando usar:** Data Tables, armazenamento simples, dedup, idempotência, estado persistente ou tabelas internas do n8n.
-
----
-
-### `n8n--binary-and-data`
-**O que é:** Skill para arquivos, imagens, anexos e dados binários em n8n.
-
-**Responsabilidades:**
-- Diferenciar dados JSON em `$json` de arquivos em `$binary`
-- Configurar upload, download, anexos e leitura de buffers
-- Preservar binary data com Merge quando etapas intermediárias removem contexto
-- Lidar com limites entre Agent tools e binary data
-- Usar storage/URLs quando arquivos precisam atravessar fronteiras JSON-only
-
-**Quando usar:** arquivo, imagem, PDF, attachment, upload, download, multimodal, vision ou agent tool que precisa receber/retornar arquivo.
-
----
-
-### `n8n--debugging`
-**O que é:** Investigador de workflows n8n com erro, output inesperado ou comportamento diferente do esperado.
-
-**Responsabilidades:**
-- Conferir parâmetros reais de nodes e execuções
-- Investigar validação que passa mas workflow quebra em runtime
-- Buscar fonte do n8n quando comportamento não estiver claro
-- Diagnosticar erros de expressão, conexões, credenciais e shapes de dados
-- Transformar sintomas em hipóteses testáveis
-
-**Quando usar:** "não funciona", erro em execução, output vazio, node pulado, parâmetro ignorado ou comportamento estranho.
-
----
-
-### `n8n--extending-mcp`
-**O que é:** Guia para expor workflows n8n como tools MCP quando o MCP atual não cobre uma capacidade necessária.
-
-**Responsabilidades:**
-- Identificar lacunas do MCP nativo
-- Criar workflows-tool com contratos claros
-- Expor operações n8n para agentes externos
-- Garantir permissões e segurança antes de automatizar ações sensíveis
-- Documentar inputs, outputs e limitações da tool exposta
-
-**Quando usar:** quando uma capacidade precisa existir como tool MCP e não há ferramenta nativa suficiente.
-
-================================================================================
-
-## Produto
-
-> Skills pra definição de produto, discovery, roadmap, feature design e validação de ideais.
-
-### product-- → Produto & Análise
-
-### `product--product-discovery`
-**O que é:** Validador de oportunidades de produto antes de commitar recursos.
-
-**Responsabilidades:**
-- Mapear hipóteses e suposições
-- Planejar discovery sprints
-- Testar problem-solution fit
-- Identificar riscos de produto antes de construir
-- Frameworks de priorização (RICE, ICE)
-
----
-
-### `product--generic-feature-developer`
-**O que é:** Guia de desenvolvimento de features com padrões de arquitetura por tipo de projeto.
-
-**Responsabilidades:**
-- Fluxo: Entender → Planejar → Implementar → Testar
-- Padrões de arquitetura por tipo (React/Next.js, FastAPI, automação)
-- Boas práticas integradas no fluxo
-- Orientação contextual sem ser stack-específico
-
----
-
-### `product--feature-forge`
-**O que é:** Workshop de requisitos — transforma ideias em especificações formais de produto.
-
-**Responsabilidades:**
-- Conduzir workshops estruturados de requisitos
-- Escrever user stories no formato correto
-- EARS format (Event-driven, Attribute-driven, etc.)
-- Acceptance criteria objetivos e testáveis
-- Implementation checklists
-- PRDs (Product Requirements Documents)
-- Matrizes de requisitos
-
-**Sinergia:** `product--product-discovery` → `product--feature-forge` → `arch--api-designer` → implementação.
-
----
-
-### `product--project-planner`
-**O que é:** Planejador de projetos gerais — não técnico, focado em gestão e estratégia.
-
-**Responsabilidades:**
-- Definir metas e milestones (SMART goals, OKRs)
-- Criar roadmaps e timelines
-- Gantt charts
-- Planejamento de recursos
-- Avaliação de riscos e contingências
-- Planos para negócios, eventos, projetos acadêmicos e pessoais
-
-**Diferença de `superpowers:writing-plans`:** `writing-plans` planeja **implementação técnica** de software. `product--project-planner` planeja **projetos gerais** (não técnicos).
-
-================================================================================
-
-## Marketing
-
-> Skills pra marketing, conceitos e estratégias e growth de produto.
-
-### marketing-- → Marketing & Growth
-
-> 49 skills de marketing e crescimento (Corey Haines). Padronizadas com prefixo `marketing--*` (domínio especializado separado de `product--`).
-
-**Cobertura (algumas das principais):**
-- **SEO:** seo-audit, ai-seo, schema, programmatic-seo, site-architecture
-- **Paid Ads:** ads, ad-creative, attribution, analytics, aso (App Store)
-- **Copy:** copywriting, copy-editing, cold-email, emails, sms, social
-- **Conversion:** cro (conversion-rate-optimization), paywalls, popups, pricing, offers
-- **Content:** content-strategy, free-tools, image, video, schema
-- **Growth:** ab-testing, launch, product-marketing, referrals, onboarding, churn-prevention, lead-magnets
-- **Research:** customer-research, competitor-profiling, competitors
-- **Revenue:** revops, sales-enablement, public-relations, influencer-marketing
-- **Misc:** community-marketing, co-marketing, marketing-council, marketing-ideas, marketing-loops, marketing-psychology, directory-submissions, prospecting
-
-**Quando usar:** qualquer tarefa de marketing — from brand strategy (marketing-plan) até execution (copywriting, ads, analytics, revops).
-
-**Nota:** skills são altamente especializadas — referem-se umas às outras pra coordenação (e.g., copywriting remete pra emails pra cold-email copy vs website copy).
-
-================================================================================
-
-## Skills Oficiais Anthropic (Superpowers)
-
-> Ficam em `~/.claude/plugins/cache/claude-plugins-official/superpowers/`
-> **Não editar.** São atualizadas automaticamente pelo sistema de plugins.
-> Ativação: **automática** — o Claude Code as chama sem você pedir.
-
-| Skill | Quando ativa automaticamente | Para que serve |
+| Fonte | Skills | Uso |
 |---|---|---|
-| `brainstorming` | Antes de criar features, componentes ou modificar comportamento | Explora intenção e design antes do código |
-| `writing-plans` | Quando há spec/requisitos de tarefa multi-step | Gera plano de implementação passo a passo |
-| `executing-plans` | Quando há um plano escrito para executar em sessão separada | Executa com checkpoints de revisão |
-| `systematic-debugging` | Ao encontrar qualquer bug, falha de teste ou comportamento inesperado | Impõe metodologia antes de propor fix |
-| `test-driven-development` | Antes de escrever código de implementação | Garante que o teste exista antes do código |
-| `requesting-code-review` | Ao completar tarefas ou implementar features | Prepara e verifica o trabalho antes do review |
-| `receiving-code-review` | Ao receber feedback de review | Avalia sugestões criticamente antes de aplicar |
-| `verification-before-completion` | Antes de declarar algo pronto, fixado ou passando | Exige evidência antes de qualquer afirmação |
-| `finishing-a-development-branch` | Quando implementação completa e testes passando | Guia merge/PR/cleanup |
-| `dispatching-parallel-agents` | 2+ tarefas independentes sem estado compartilhado | Paraleliza trabalho via subagentes |
-| `subagent-driven-development` | Executar planos com tarefas independentes na sessão atual | Desenvolvimento via múltiplos subagentes |
-| `using-git-worktrees` | Antes de feature work que precisa de isolamento | Cria workspace isolado via git worktree |
-
-### Outros Plugins Oficiais
-
-| Plugin | Tipo | Para que serve |
-|---|---|---|
-| `code-review:code-review` | Skill | Review de PR ou diff local — `--comment` posta inline no GitHub, `--fix` aplica fixes |
-| `frontend-design:frontend-design` | Skill | Direção visual: estética, tipografia, escolhas de design não-genéricas |
-| `skill-creator:skill-creator` | Skill | Criar, editar, testar e otimizar novas skills |
-| `code-simplifier` | Agente | Simplifica e refina código recém-modificado automaticamente |
-
-================================================================================
-
-## Plugins de Terceiros
-
-> Instalados via marketplace de plugin (`claude plugin marketplace add` + `claude plugin install`), não por cópia manual em `~/.claude/skills/`. Ficam em `~/.claude/plugins/cache/<marketplace>/`, atualizados pelo próprio sistema de plugins.
-
-### composio-- → Suites de Utilidade Geral
-
-> 27 skills genéricas de utilidade (Composio HQ) — design, content, dev tooling, integrations, research. **NÃO são ferramentas Composio reais**, mas skills de propósito geral que pertencem a um domínio próprio, fora de `product--`, `dev--`, etc. Padronizadas com prefixo único `composio--*` pra evitar poluição de categorias de engenharia.
-
-| Tipo | Skills |
-|---|---|
-| **UI/Design** | artifacts-builder, brand-guidelines, canvas-design, theme-factory |
-| **Content/Writing** | content-research-writer, internal-comms, changelog-generator |
-| **Dev Tooling** | webapp-testing, langsmith-fetch, skill-creator, skill-share |
-| **Integrations** | connect, connect-apps (Gmail, Slack, GitHub, Notion, 1000+ services) |
-| **Data/Analysis** | lead-research-assistant, competitive-ads-extractor, developer-growth-analysis, meeting-insights-analyzer, twitter-algorithm-optimizer |
-| **Utilities** | video-downloader, image-enhancer, domain-name-brainstormer, file-organizer, raffle-winner-picker |
-
-**Padrão de categorização:** Estas são skills **GENÉRICAS e AGNÓSTICAS** (não se especializam em domínio como marketing, dev, data — são utilitários). Por isso ficam em categoria própria `composio--*`, não espalhadas por `dev--composio-*`, `product--composio-*`, etc.
+| **superpowers** (Anthropic) | brainstorming, writing-plans, executing-plans, systematic-debugging, test-driven-development, requesting/receiving-code-review, verification-before-completion, finishing-a-development-branch, dispatching-parallel-agents, subagent-driven-development, using-git-worktrees | Automáticas — processo de dev disciplinado |
+| **code-review** (Anthropic) | `code-review:code-review` | Review de PR/diff, `--comment` posta inline, `--fix` aplica |
+| **frontend-design** (Anthropic) | `frontend-design:frontend-design` | Direção visual/estética |
+| **skill-creator** (Anthropic) | criar/testar/otimizar skills novas | Meta — criar skill nova |
+| **code-simplifier** (Anthropic, agente) | simplifica código recém-modificado | Automático pós-edit |
+| **mattpocock-skills** (25 skills) | diagnosing-bugs, tdd, code-review, codebase-design, improve-codebase-architecture, implement, to-spec, to-tickets, triage, wayfinder, teach, domain-modeling, prototype, research, resolving-merge-conflicts, grilling, grill-me, handoff, wizard, writing-for-agents, to-questionnaire, wait-what, ask-matt, grill-with-docs, setup | Pack de engenharia ativamente mantido (Matt Pocock). Prefira sobre skills custom de debugging/review/spec/arquitetura |
+| **caveman** (marketplace) | modo de compressão de output | Ver bloco `tools--caveman-*` abaixo — versão pasta local |
+| **genjutsu** | `cast` (micro-interação), `paint` (design system) | Motion/UI web |
+| **gsap-skills** | gsap-core/frameworks/performance/plugins/react/scrolltrigger/timeline/utils | Animação GSAP |
+| **claude-code-setup** (Anthropic) | `claude-automation-recommender` | Meta — recomenda hooks/skills/MCP pro codebase atual |
+| **claude-md-management** (Anthropic, 2026-09-15) | audita/mantém `CLAUDE.md` | Repo não tinha `CLAUDE.md` — usar pra criar/manter um |
+| **claude-security** (Anthropic, 2026-09-15) | scan de vulnerabilidade com effort tiers + challenge de findings | Prefira sobre skill custom de auditoria — usar junto com `dev--security-reviewer` (este cobre revisão de código geral; `claude-security` é scan dedicado) |
+| **hookify** (Anthropic, 2026-09-15) | cria hooks a partir de padrões de conversa | Usar pra automatizar `tools--skill-lint` como PostToolUse, sem editar `settings.json` na mão |
+| **commit-commands** (Anthropic, 2026-09-15) | comandos de commit/push/PR | Complementa `tools--caveman-commit` (aquele comprime a mensagem, este agiliza o fluxo) |
+| **playwright** (Anthropic, 2026-09-15) | MCP oficial de browser automation | Overlap parcial com `composio--testing` (mecanismo diferente — MCP vs skill); prefira playwright pra e2e real, composio--testing pra teste local rápido |
 
 ---
 
-### `genjutsu:cast` e `genjutsu:paint`
-**O que é:** Plugin de creative coding para motion design, micro-interações e sistemas visuais — cobre Web (React/Vue/Svelte, GSAP, Framer Motion, CSS nativo, Three.js, Canvas generativo), Android (Jetpack Compose, Compose Multiplatform) e Apple (SwiftUI iOS/macOS).
+## Skills locais (44) — por categoria
 
-**Estrutura:** dois orquestradores (`cast`, `paint`) carregam dinamicamente 15 sub-skills internas em `_jutsu/` (nunca invocadas diretamente) conforme stack detectado e escopo do pedido. Resolução de caminho via `${CLAUDE_PLUGIN_ROOT}` — por isso instalado como plugin real, não copiado manualmente como `tools--graphify`/`tools--caveman`.
+### IA & Agentes (`ai--`, 2)
+| Skill | Para que serve |
+|---|---|
+| `ai--agno` | Framework Agno — agentes/times/workflows de produção, MCP, AgentOS |
+| `ai--agent-development` | Criar/editar subagentes Claude Code (frontmatter, description, tools, triggers) |
 
-**`genjutsu:cast` — The Illusionist:**
-- Pipeline: Scan stack → Evaluate scope → Propõe interaction thesis → Load sub-skills → Implement → Mini-audit
-- Uso: efeito isolado, animação pontual, polish de interação existente (ex: "adiciona scroll animation nessa seção", "deixa esse dropdown mais snappy")
+### Arquitetura & Infra (`arch--`, 4)
+| Skill | Para que serve |
+|---|---|
+| `arch--api-designer` | REST/GraphQL, OpenAPI specs, versionamento, paginação |
+| `arch--devops-engineer` | Dockerfiles, CI/CD, Kubernetes, Terraform/Pulumi |
+| `arch--monitoring-expert` | Prometheus/Grafana, logging estruturado, alertas, load testing, profiling |
+| `arch--senior-architect` | Arquitetura de sistema ampla (React/Next/Node/Express/RN/Swift/Kotlin/Flutter/Postgres/GraphQL/Go/Python) |
 
-**`genjutsu:paint` — The Master Painter:**
-- Pipeline: Brainstorm → Define visual + interaction thesis → Gera design system persistente (`MASTER.md`/`Theme.kt`/`Color+App.swift`) → Implement → Full audit
-- Uso: redesign completo, sistema de design do zero (ex: "redesenha a landing page inteira", "monta um portfólio do zero")
+### Integrações & Utilitários (`composio--`, 3)
+| Skill | Para que serve |
+|---|---|
+| `composio--apps` | Conectar Claude a apps externos (Gmail, Slack, GitHub, 1000+) |
+| `composio--builder` | Artifacts HTML multi-componente (React/Tailwind/shadcn) |
+| `composio--testing` | Testar apps web locais com Playwright |
 
-**Regras do plugin (Iron Rules):**
-- Nunca codar sem interaction thesis validada pelo usuário
-- Uma pergunta por vez na fase de discovery, nunca em lote
-- Rejeita AI slop genérico (gradiente arco-íris, glassmorphism gratuito, "moderno e clean")
-- Nunca instala dependência sem perguntar
-- Complexidade proporcional ao escopo (hover effect não justifica GSAP + ScrollTrigger)
+### Dados & Banco (`data--`, `db--`, 3)
+| Skill | Para que serve |
+|---|---|
+| `data--pandas-pro` | DataFrames — limpeza, agregação, transformação |
+| `db--postgres-pro` | Postgres avançado — EXPLAIN, JSONB, replicação, extensões |
+| `db--sql-pro` | Queries lentas, schema design, troubleshooting genérico |
 
-**Diferença de `frontend-design:frontend-design`:** `frontend-design` decide direção visual geral (estética, tipografia, paleta). `genjutsu:paint`/`cast` implementam tecnicamente motion e interação, com pipeline próprio de thesis + audit multi-stack (web/Compose/SwiftUI), incluindo Android e Apple nativos que `frontend-design` não cobre.
+### Desenvolvimento (`dev--`, 4)
+| Skill | Para que serve |
+|---|---|
+| `dev--code-refactoring` | Clean code, SOLID, refatoração incremental sem quebrar comportamento |
+| `dev--python-pro` | Python 3.11+ type-safe, async, error handling |
+| `dev--security-reviewer` | Vulnerabilidades + relatório de auditoria com severidade |
+| `dev--test-master` | Geração de testes, mocking, coverage, test plans |
 
-**Sinergia com:** `frontend-design:frontend-design` (direção visual antes) + `frontend--ui-ux-expert` (implementação React/acessibilidade) + `dev--test-master` (testes de componente/regressão visual)
+### Frontend (`frontend--`, 2)
+| Skill | Para que serve |
+|---|---|
+| `frontend--typescript-pro` | Type systems avançados, type guards, branded types, tRPC |
+| `frontend--ui-ux-expert` | React acessível com shadcn/ui + Tailwind + TanStack Query (fluxo de 6 fases) |
+
+### Aprendizado (`learn--`, 1)
+| Skill | Para que serve |
+|---|---|
+| `learn--project-mentor` | Entender/explicar projeto ou codebase existente (visão macro) |
+
+### n8n (`n8n--`, 14 — uso ativo confirmado)
+Protocolo completo pra workflows n8n. `using-skills` é o roteador always-on; os demais cobrem uma fase/conceito cada.
+
+| Skill | Para que serve |
+|---|---|
+| `n8n--using-skills` | Roteador always-on, carregado no SessionStart |
+| `n8n--workflow-lifecycle` | Design → organização → finalização de um workflow |
+| `n8n--agents` | AI Agents, Text Classifier, Information Extractor, LLM Chain |
+| `n8n--node-configuration` | Configurar qualquer node (HTTP, webhook, DB, comms, triggers, Merge) |
+| `n8n--expressions` | Sintaxe `{{...}}`, `$json`/`$node`, Luxon dates |
+| `n8n--code-nodes` | Code node — JS/Python custom logic |
+| `n8n--data-tables` | Data Tables — schema, insert/update/upsert, query |
+| `n8n--binary-and-data` | Arquivos, imagens, anexos, binary data |
+| `n8n--loops` | Multi-item, batches, paginação, rate limits, fan-out |
+| `n8n--subworkflows` | Workflows multi-step ou reutilizáveis (>10 nodes) |
+| `n8n--error-handling` | Webhook/produção — evitar falha silenciosa |
+| `n8n--credentials-and-security` | Auth, API keys, tokens, OAuth, secrets |
+| `n8n--debugging` | Workflow quebrado / resultado inesperado |
+| `n8n--extending-mcp` | Expor workflow n8n como tool MCP |
+
+### Produto (`product--`, 2)
+| Skill | Para que serve |
+|---|---|
+| `product--product-discovery` | Validar oportunidades, discovery sprints, problem-solution fit |
+| `product--project-planner` | Planejamento não-técnico — negócios, eventos, pessoal |
+
+### Ferramentas (`tools--`, 11)
+| Skill | Para que serve |
+|---|---|
+| `tools--caveman` | Modo de compressão de output (~65%), 6 níveis de intensidade |
+| `tools--caveman-commit` | Commit messages comprimidas, Conventional Commits |
+| `tools--caveman-compress` | Comprime memory files (CLAUDE.md, todos) pra economizar tokens |
+| `tools--caveman-help` | Cartão de referência dos modos/comandos caveman |
+| `tools--caveman-review` | Comentários de PR comprimidos, um por linha |
+| `tools--caveman-stats` | Uso real de tokens da sessão atual |
+| `tools--cavecrew` | Decide quando delegar a subagentes estilo-caveman |
+| `tools--context7-mcp` | Docs de libraries/frameworks via Context7 |
+| `tools--graphify` | Perguntas sobre arquitetura/relações de arquivos do codebase |
+| `tools--skill-lint` | Valida frontmatter de todo `SKILL.md` — pega skills quebradas (sem `description`) antes que fiquem invisíveis |
+| `tools--skill-audit` | Compara skills locais entre si e contra as oficiais/marketplace instaladas, aponta duplicatas |
+
+**Meta:** agente `.claude/agents/skill-reviewer.md` — roda antes de instalar/criar skill nova, aplica o critério dessa limpeza (154→46) automaticamente.
 
 ---
 
-### `gsap-skills:gsap-*` (8 skills)
-**O que é:** Skills oficiais GreenSock — API GSAP completa: core, timelines, ScrollTrigger, plugins, React, outros frameworks, performance e utils.
+## Fluxos comuns
 
-| Skill | Foco |
+```
+Bug                 → systematic-debugging (auto) → mattpocock:diagnosing-bugs → fix na camada certa → verification-before-completion (auto)
+Feature nova         → brainstorming (auto) → mattpocock:to-spec → to-tickets → writing-plans (auto)
+Review de PR         → code-review:code-review --comment (GitHub) | mattpocock:code-review (local)
+Segurança pré-deploy  → dev--security-reviewer → correções manuais
+Nova tela UI          → frontend-design:frontend-design → frontend--ui-ux-expert → frontend--typescript-pro
+n8n workflow          → n8n--using-skills (auto) → n8n--workflow-lifecycle → skill da fase específica
+Entender codebase     → learn--project-mentor | tools--graphify | mattpocock:wayfinder
+```
+
+## Referência rápida
+
+| Preciso de... | Skill |
 |---|---|
-| `gsap-core` | `gsap.to/from/fromTo`, easing, duration, stagger, defaults, `matchMedia()` (responsivo/reduced-motion) |
-| `gsap-timeline` | `gsap.timeline()`, position parameter, nesting, playback |
-| `gsap-scrolltrigger` | Scroll-linked animation, pinning, scrub, triggers, parallax |
-| `gsap-plugins` | ScrollToPlugin, ScrollSmoother, Flip, Draggable, Inertia, Observer, SplitText, ScrambleText, SVG, CustomEase e afins |
-| `gsap-react` | `useGSAP` hook, refs, `gsap.context()`, cleanup |
-| `gsap-frameworks` | Vue, Svelte, Nuxt, SvelteKit — lifecycle, scoping, cleanup on unmount |
-| `gsap-performance` | Transforms vs layout thrashing, `will-change`, batching, 60fps |
-| `gsap-utils` | `gsap.utils`: clamp, mapRange, normalize, interpolate, random, snap, toArray, wrap, pipe |
-
-**Nota:** GSAP e todos os plugins (SplitText, MorphSVG, etc.) são 100% gratuitos desde a aquisição pelo Webflow — sem Club membership, sem registry privado.
-
-**Diferença de `genjutsu:cast` (sub-skill `gsap`):** `genjutsu` cobre GSAP dentro do pipeline thesis→implement→audit multi-stack, carregado internamente. `gsap-skills` é API GSAP standalone, cada skill invocável direto, sem pipeline de discovery.
-
-**Sinergia com:** `genjutsu:cast` (pipeline de implementação) + `frontend--motion-design` (timing/easing/narrativa antes de escrever timeline)
-
----
-
-### `mattpocock-skills:*` (22 skills)
-**O que é:** Plugin oficial de Matt Pocock — engineering workflows reais: TDD, spec-to-code, ticket triaging, code review, domain modeling, grilling/debugging, prototyping e research. Não é vibe coding — é disciplina estruturada.
-
-| Skill | Foco |
-|---|---|
-| `to-spec` | Converter ticket/user story em spec técnica — decisions, trade-offs, edge cases |
-| `to-tickets` | Quebrar spec em tickets escalonados com AC/dependências — pronto pro sprint |
-| `tdd` | Test-driven development — red/green/refactor disciplinado |
-| `code-review` | Review estruturado: segurança, performance, clareza, testing, padrões |
-| `domain-modeling` | Mapear domain entities, bounded contexts, invariants, workflows |
-| `codebase-design` | Estrutura de arquivos, exports, camadas, modularização |
-| `grill-with-docs` | Investigação via docs/specs, sem ir pro código ainda |
-| `diagnosing-bugs` | Triagem sistemática — isolate, hypothesis, test, root cause |
-| `implement` | Guia de implementação step-by-step, evitando atalhos |
-| `prototype` | Prototipagem rápida — decisões técnicas antes de commitar |
-| `research` | Research estruturada, nota-taking, síntese |
-| `wayfinder` | Encontrar arquivos, funções, dependências — mapeamento de codebase |
-| `triage` | Triagem de issue/ticket — pergunta estruturada, claridade, prioridade |
-| `resolving-merge-conflicts` | Estratégia sistemática pra merge conflicts |
-| `grilling` | Deep questioning — clarify requirements, edge cases, trade-offs |
-| `grill-me` | Inverte — agente grill você pra validar seu design |
-| `ask-matt` | Perguntar diretamente a Matt Pocock sobre engenharia/skill |
-| `teach` | Explicar conceito técnico como se ensinasse um junior |
-| `setup-matt-pocock-skills` | Setup e troubleshooting dos skills |
-| `writing-great-skills` | Guidelines pra escrever suas próprias skills |
-| `improve-codebase-architecture` | Refactor arquitetural — antes de mexer em código |
-| `handoff` | Documentação e handoff — deixar codebase pronto pro próximo dev |
-
-**Pipeline oficial:** `to-spec` → `to-tickets` → `tdd` → `code-review` → `handoff` (pra trabalho em time). Ou `grill` → `prototype` → `research` (pra exploration).
-
-**Diferença de skills dev do repo:** `dev--code-reviewer` é um revisor de código agnóstico, genérico. `mattpocock-skills:code-review` é disciplina estruturada — segurança, performance, clareza, testing, padrões em ordem. Similar com debugging: `mattpocock:diagnosing-bugs` é triagem sistemática (isolate, hypothesis, test), não só "o que deu errado".
-
-**Sinergia com:** `product--feature-forge` (from user story) → `mattpocock:to-spec` → `mattpocock:to-tickets` → `mattpocock:tdd` → `dev--test-master` + `mattpocock:code-review` → PR + `mattpocock:handoff`
-
-================================================================================
-
-## Fluxos de Sinergia
-
-### Feature Nova (do zero ao PR)
-```
-product--product-discovery    → vale construir?
-product--feature-forge        → user story + acceptance criteria
-arch--api-designer            → contrato da API
-[brainstorming]               → (automático) explora design
-writing-plans                 → (automático) plano de implementação
-test-driven-development       → (automático) teste antes do código
-dev--test-master              → suite completa
-dev--fullstack-guardian       → implementação full-stack segura
-verification-before-completion → (automático) prova antes de afirmar
-requesting-code-review        → (automático) prepara para review
-code-review:code-review       → executa o review
-finishing-a-development-branch → merge/PR
-```
-
-### Bug Investigation
-```
-systematic-debugging    → (automático) metodologia primeiro
-dev--debugging-wizard   → investigação técnica ativa
-[skill da camada]       → fix na camada correta
-verification-before-completion → (automático) prova o fix
-dev--test-master        → teste de regressão
-```
-
-### Nova UI / Tela
-```
-frontend-design:frontend-design  → direção visual
-frontend--ui-ux-expert           → 6 fases de implementação
-frontend--typescript-pro         → tipagem avançada
-dev--test-master                 → testes de componente
-playwright-expert (projeto)      → testes E2E
-```
-
-### Qualidade antes de Merge
-```
-dev--code-reviewer        → revisão ampla
-dev--security-reviewer    → auditoria de segurança
-dev--secure-code-guardian → implementa correções
-dev--security-auditor     → dependências npm
-dev--code-refactoring     → refatora pontos problemáticos
-code-simplifier (agente)  → simplifica resultado
-```
-
-### Banco de Dados com Performance
-```
-arch--api-designer      → define contratos antes do schema
-db--postgres-pro        → modela schema com features Postgres
-db--sql-pro             → escreve queries complexas
-db--database-optimizer  → otimiza após EXPLAIN ANALYZE
-```
-
-### Exploração e Compreensão de Codebase
-```
-tools--graphify                   → gera grafo persistente + visualização
-tools--graphify query/path/explain → navega o grafo para perguntas rápidas
-learn--project-mentor      → onboarding estruturado do projeto
-learn--code-teacher        → entender blocos de código específicos
-learn--spec-miner          → reverse-engineer logic não documentada
-dev--code-reviewer         → entender impacto arquitetural de mudanças
-```
-
-### Automação N8N (workflow do zero ao deploy)
-```
-n8n--using-skills         → (sempre ativo) protocolo e roteamento
-n8n--workflow-lifecycle   → design, estrutura e organização do workflow
-n8n--node-configuration   → configuração dos nós
-n8n--expressions          → expressões {{...}} e $json
-n8n--subworkflows         → modularizar lógica repetível
-n8n--error-handling       → branches de erro e workflows de produção
-n8n--credentials-and-security → autenticação e secrets
-n8n--agents               → se houver IA/LLM no workflow
-n8n--loops                → processar múltiplos itens ou páginas
-n8n--debugging            → quando algo não funciona
-```
-
-### Novos Agentes
-```
-ai--multi-agent-architect → quando for um time de agentes: taxonomia, padrões, fronteiras
-ai--agno                  → padrões idiomáticos do framework (API, estrutura, regras)
-ai--prompt-engineer       → escreve o system prompt
-ai--agent-development     → estrutura o agente no Claude Code (frontmatter, tools)
-dev--python-pro           → implementa a lógica Python
-ai--rag-architect         → se o agente precisar buscar contexto no pgvector
-dev--test-master          → testes do agente
-```
-
----
-
-## Referência Rápida
-
-| Situação | Skill(s) |
-|---|---|
-| Criar feature nova | `brainstorming` → `product--feature-forge` → `writing-plans` |
-| Bug apareceu | `systematic-debugging` → `dev--debugging-wizard` |
-| Review de PR | `code-review:code-review --comment` |
-| Review local | `dev--code-reviewer` |
-| Segurança antes de subir | `dev--security-reviewer` → `dev--secure-code-guardian` |
-| Auditoria npm | `dev--security-auditor` |
-| Nova tela UI | `frontend-design` → `frontend--ui-ux-expert` |
-| Motion/micro-interação pontual | `genjutsu:cast` |
-| Redesign completo / design system do zero | `genjutsu:paint` |
-| Fundamentar timing/easing/narrativa de uma animação | `frontend--motion-design` |
-| Cena/geometria/shader/GLTF Three.js | `frontend--threejs-*` (skill específica pelo contexto) |
-| Timeline/ScrollTrigger/plugin GSAP | `gsap-skills:gsap-*` (skill específica pelo contexto) |
-| Extrair/clonar estilo de referência (imagem/URL) | `frontend--design-dna` |
-| Gerar Lottie JSON (dentro de projeto com player) | `text-to-lottie` (`npx skills add diffusionstudio/lottie`) |
-| TypeScript complexo | `frontend--typescript-pro` |
-| Python moderno | `dev--python-pro` |
-| Query lenta | `db--database-optimizer` + `db--sql-pro` |
-| Criar agentes | `ai--agent-development` + `ai--prompt-engineer` |
-| Criar agente com Agno (único) | `ai--agno` → `ai--prompt-engineer` + `ai--agent-development` |
-| Criar time de agentes | `ai--multi-agent-architect` → `ai--agent-development`/`ai--agno` → `ai--prompt-engineer` |
-| Entender lib externa | `learn--project-mentor` |
-| Fetch docs atualizadas de qualquer lib | `learn--context7-docs` |
-| Entender trecho de código | `learn--code-teacher` |
-| Código sem documentação | `learn--spec-miner` |
-| Pergunta sobre codebase | `tools--graphify` (query/path/explain) |
-| Explorar arquitetura do projeto | `tools--graphify query` (se tools--graphify-out/ existir) |
-| Onboarding em novo repo | `tools--graphify` → ler GRAPH_REPORT.md → `learn--project-mentor` |
-| Escrever testes | `test-driven-development` + `dev--test-master` |
-| Pronto para commitar | `verification-before-completion` (automático) |
-| Criar PR | `requesting-code-review` → `finishing-a-development-branch` |
-| Recebeu feedback de review | `receiving-code-review` |
-| Dados → relatório | `data--pandas-pro` → `data--storyteller` |
-| Browser automation / web scraping / UI test | `arch--browserbase-*` (skill específica pelo contexto) |
-| Deploy / Docker | `arch--devops-engineer` |
-| Monitoring / Observabilidade | `arch--monitoring-expert` |
-| Refatorar código ruim | `dev--code-refactoring` |
-| Simplificação pontual | `code-simplifier` (agente) |
-| Economizar tokens na conversa | `tools--caveman` |
-| Delegar com output comprimido | `tools--cavecrew` |
-| Commit message curta | `tools--caveman-commit` |
-| Review curto e acionável | `tools--caveman-review` |
-| Comprimir arquivo de memória | `tools--caveman-compress` |
-| Ajuda dos comandos Caveman | `tools--caveman-help` |
-| Ver uso real de tokens | `tools--caveman-stats` |
-| Planejar roadmap do projeto | `product--project-planner` |
-| Validar antes de construir | `product--product-discovery` |
-| Converter ticket em spec técnica | `mattpocock:to-spec` |
-| Quebrar spec em tickets com AC | `mattpocock:to-tickets` |
-| TDD disciplinado (red/green/refactor) | `mattpocock:tdd` |
-| Code review estruturado | `mattpocock:code-review` |
-| Mapear domain entities + bounded contexts | `mattpocock:domain-modeling` |
-| Triagem de bug sistemática | `mattpocock:diagnosing-bugs` |
-| Deep questioning antes de começar | `mattpocock:grilling` |
-| Prototipagem rápida | `mattpocock:prototype` |
-| Investigar codebase (via docs) | `mattpocock:grill-with-docs` |
-| Research estruturada | `mattpocock:research` |
-| Encontrar arquivo/função no projeto | `mattpocock:wayfinder` |
-| Merge conflicts | `mattpocock:resolving-merge-conflicts` |
-| Documentação de handoff | `mattpocock:handoff` |
-| Qualquer coisa com N8N | `n8n--using-skills` (roteia automaticamente) |
-| Novo workflow N8N | `n8n--workflow-lifecycle` → `n8n--node-configuration` |
-| Expressão N8N com erro | `n8n--expressions` |
-| Agente IA no N8N | `n8n--agents` |
-| Loop / batch N8N | `n8n--loops` |
-| Erro em workflow N8N | `n8n--debugging` → `n8n--error-handling` |
-| Credenciais / OAuth N8N | `n8n--credentials-and-security` |
-| Código JS/Python no N8N | `n8n--code-nodes` |
-| Subworkflow / reuso N8N | `n8n--subworkflows` |
+| API design | `arch--api-designer` |
+| Deploy/infra | `arch--devops-engineer` |
+| Observabilidade | `arch--monitoring-expert` |
+| Query SQL lenta | `db--sql-pro` / `db--postgres-pro` |
+| Refatorar código | `dev--code-refactoring` |
+| Gerar testes | `dev--test-master` |
+| Auditoria de segurança | `dev--security-reviewer` |
+| Tela React acessível | `frontend--ui-ux-expert` |
+| Tipos TS avançados | `frontend--typescript-pro` |
+| Conectar app externo | `composio--apps` |
+| Testar app web local | `composio--testing` |
+| pandas/dados | `data--pandas-pro` |
+| Workflow n8n | `n8n--using-skills` |
+| Validar ideia de produto | `product--product-discovery` |
+| Planejar projeto não-técnico | `product--project-planner` |
+| Entender projeto/codebase | `learn--project-mentor` |
+| Docs de lib/framework | `tools--context7-mcp` |
+| Modo comprimido | `tools--caveman` |
