@@ -6,14 +6,6 @@
       "url": "https://github.com/JuliusBrussee/caveman.git"
     },
     {
-      "name": "genjutsu",
-      "url": "https://github.com/AThevon/genjutsu.git"
-    },
-    {
-      "name": "gsap-skills",
-      "url": "https://github.com/greensock/gsap-skills.git"
-    },
-    {
       "name": "mattpocock",
       "url": "https://github.com/mattpocock/skills.git"
     }
@@ -31,8 +23,6 @@
     "commit-commands@claude-plugins-official",
     "playwright@claude-plugins-official",
     "caveman@caveman",
-    "genjutsu@genjutsu",
-    "gsap-skills@gsap-skills",
     "mattpocock-skills@mattpocock"
   ]
 }
