@@ -15,13 +15,7 @@
 |---|---|---|
 | Como carrega | Claude Code varre `SKILL.md` direto | `/plugin` — cache em `~/.claude/plugins/cache/` |
 | Update | manual (reinstala) | `claude plugin update` |
-| Usa aqui | as 46 abaixo | superpowers, mattpocock-skills, code-review, frontend-design, skill-creator, code-simplifier, claude-code-setup, claude-md-management, claude-security, hookify, commit-commands, caveman, genjutsu, gsap-skills |
-
-### Setup em máquina nova
-```bash
-git clone https://github.com/LucasGS520/Claude-Skills.git && cd Claude-Skills && ./install.sh
-```
-Copia `.claude/skills/*` pra `~/.claude/skills/` + instala plugins de `plugins.json` (marketplaces de terceiros + oficiais Anthropic), idempotente.
+| Usa aqui | as 46 abaixo | superpowers, mattpocock-skills, code-review, frontend-design, code-simplifier, claude-md-management, claude-security, hookify, commit-commands, caveman |
 
 ---
 
@@ -34,13 +28,9 @@ Prefira estas antes de qualquer skill custom equivalente. Ficam em `~/.claude/pl
 | **superpowers** (Anthropic) | brainstorming, writing-plans, executing-plans, systematic-debugging, test-driven-development, requesting/receiving-code-review, verification-before-completion, finishing-a-development-branch, dispatching-parallel-agents, subagent-driven-development, using-git-worktrees | Pacote de processo de desenvolvimento disciplinado, always-on. `brainstorming` explora intenção antes de qualquer feature nova; `systematic-debugging` investiga causa raiz antes de propor fix; `writing-plans`/`executing-plans` transformam spec em plano executável e o executam; `test-driven-development` força red-green-refactor; `verification-before-completion` checa antes de declarar tarefa pronta; `using-git-worktrees` isola trabalho em branch própria |
 | **code-review** (Anthropic) | `code-review:code-review` | Revisa o diff atual, PR ou branch por bugs de correção e oportunidades de simplificação. `--comment` posta os achados como comentários inline no PR; `--fix` aplica as correções direto na árvore de trabalho; `ultra` dispara review multi-agente na nuvem |
 | **frontend-design** (Anthropic) | `frontend-design:frontend-design` | Direção visual e estética para telas/componentes novos — decide layout, hierarquia visual e estilo antes da implementação |
-| **skill-creator** (Anthropic) | criar/testar/otimizar skills novas | Meta-skill pra criar skill do zero, editar uma existente, rodar evals de acurácia de triggering e comparar performance entre versões |
 | **code-simplifier** (Anthropic, agente) | simplifica código recém-modificado | Roda automaticamente após edições — revisa por reuso, clareza e redundância sem mudar comportamento |
 | **mattpocock-skills** (25 skills) | diagnosing-bugs, tdd, code-review, codebase-design, improve-codebase-architecture, implement, to-spec, to-tickets, triage, wayfinder, teach, domain-modeling, prototype, research, resolving-merge-conflicts, grilling, grill-me, handoff, wizard, writing-for-agents, to-questionnaire, wait-what, ask-matt, grill-with-docs, setup | Pacote de engenharia ativamente mantido (Matt Pocock). Cobre do fim ao fim: `to-spec`/`to-tickets` convertem ideia em spec e tickets, `domain-modeling`/`codebase-design` desenham a estrutura, `prototype`/`implement` constroem, `diagnosing-bugs` investiga falhas, `resolving-merge-conflicts` resolve conflitos, `grilling`/`grill-me` questionam premissas antes de aceitar um plano. Prefira sobre skills custom equivalentes de debugging/review/spec/arquitetura |
 | **caveman** (marketplace) | modo de compressão de output | Ver bloco `tools--caveman-*` abaixo — versão pasta local faz o mesmo, mantida em paralelo |
-| **genjutsu** | `cast` (micro-interação), `paint` (design system) | Motion e UI web — `cast` gera micro-interações pontuais, `paint` desenha um design system coeso |
-| **gsap-skills** | gsap-core/frameworks/performance/plugins/react/scrolltrigger/timeline/utils | Animação GSAP cobrindo dos fundamentos (`core`) a integração com framework (`react`), performance, plugins pagos, scroll-driven animation (`scrolltrigger`) e timelines complexas |
-| **claude-code-setup** (Anthropic) | `claude-automation-recommender` | Meta — analisa o codebase atual e recomenda quais hooks/skills/subagentes/MCP servers valem a pena configurar |
 | **claude-md-management** (Anthropic, 2026-09-15) | audita/mantém `CLAUDE.md` | Cria ou atualiza o `CLAUDE.md` do repo com os aprendizados da sessão — repo não tinha um antes disso |
 | **claude-security** (Anthropic, 2026-09-15) | scan de vulnerabilidade com effort tiers + challenge de findings | Orquestra scan de segurança multi-agente ponta a ponta (inventário → pesquisa → verificação → patch). Prefira sobre skill custom de auditoria — usar junto com `dev--security-reviewer` (este cobre revisão de código geral pontual; `claude-security` é o scan dedicado e mais profundo) |
 | **hookify** (Anthropic, 2026-09-15) | cria hooks a partir de padrões de conversa | Analisa a conversa em busca de comportamentos repetidos e gera hooks (PostToolUse, etc.) pra automatizar sem editar `settings.json` na mão — ex.: rodar `meta--skill-lint` sozinho após cada edição de skill |
@@ -98,7 +88,7 @@ Prefira estas antes de qualquer skill custom equivalente. Ficam em `~/.claude/pl
 |---|---|
 | `learn--project-mentor` | Explica um projeto ou repositório existente de fora pra dentro — mapeia estrutura, decisões de arquitetura e fluxo principal, inclusive cruzando código com paper acadêmico quando fornecido |
 
-### n8n (`n8n--`, 14 — uso ativo confirmado)
+### n8n (`n8n--`)
 Protocolo completo pra workflows n8n. `using-skills` é o roteador always-on carregado no SessionStart; os demais cobrem uma fase ou conceito específico cada.
 
 | Skill | O que faz |
@@ -143,8 +133,6 @@ Protocolo completo pra workflows n8n. `using-skills` é o roteador always-on car
 | `meta--skill-lint` | Valida o frontmatter YAML de todo `SKILL.md` do repo, confere se `description` está presente e não-vazia, e sinaliza nomes de skill duplicados — pega skill quebrada antes que fique invisível pro Claude Code |
 | `meta--skill-audit` | Compara skills locais entre si e contra as oficiais/marketplace instaladas, por similaridade de palavra-chave na `description`, apontando duplicata ou sobreposição antes de adicionar skill nova |
 
-**Agente:** `.claude/agents/skill-reviewer.md` — roda antes de instalar ou criar skill nova, aplica o critério da limpeza 154→46 automaticamente (checa duplicata, manutenção ativa, frontmatter válido).
-
 ---
 
 ## Sinergia / fluxo de trabalho
@@ -153,19 +141,21 @@ Como as skills se encadeiam na prática — cada bloco é uma cadeia real, não 
 
 ### Bug em produção ou teste falhando
 ```
-systematic-debugging (auto, superpowers)
-  → mattpocock:diagnosing-bugs        (isola causa raiz)
-  → dev--code-refactoring             (se o fix pede limpeza estrutural)
-  → dev--test-master                  (cobre o caso com teste de regressão)
-  → verification-before-completion (auto, superpowers)
+systematic-debugging (superpowers)
+  → mattpocock:diagnosing-bugs        — isola causa raiz
+  → dev--code-refactoring             — se o fix pede limpeza estrutural
+  → dev--test-master                  — cobre o caso com teste de regressão
+  → verification-before-completion (superpowers)
 ```
 
 ### Feature nova, do zero
 ```
 brainstorming (auto, superpowers)      — alinha intenção antes de codar
-  → mattpocock:to-spec → to-tickets    — vira spec e tickets executáveis
-  → writing-plans (auto, superpowers)  — plano passo a passo
+  → mattpocock:to-spec                 — vira spec 
   → arch--senior-architect             — se a feature mexe em arquitetura
+  → mattpocock:to-tickets              — tickets executáveis
+  → writing-plans (auto, superpowers)  — plano passo a passo
+  
   → dev--python-pro | frontend--typescript-pro  — implementação tipada
   → dev--test-master                   — testes
   → executing-plans (auto, superpowers)
@@ -177,6 +167,22 @@ code-review:code-review --comment (GitHub, remoto)
   | mattpocock:code-review (local, sem PR)
   → code-simplifier (auto, pós-edit)   — limpa o que sobrou
   → tools--caveman-review              — se quiser o feedback comprimido, 1 linha por achado
+```
+
+### Refatoração estrutural
+```
+learn--project-mentor
+  → tools--graphify
+  → mattpocock:wayfinder
+
+  → dev--code-refactoring
+  → mattpocock:improve-codebase-architecture
+  → code-simplifier                             — simplifica código recém-modificado
+
+  → dev--test-master                            — validação
+  → code-review                                 — Revisão completa, código refatorado
+
+  → verification-before-completion              — checklist final
 ```
 
 ### Segurança pré-deploy
@@ -196,7 +202,49 @@ frontend-design:frontend-design        — direção visual antes de codar
   → gsap-skills:gsap-react             — se precisar de animação além de CSS
 ```
 
-### Workflow n8n
+
+
+### Novo Agente de IA (agno)
+```
+brainstorming (auto, superpowers)      — entendimento do objetivo
+  → mattpocock:to-spec                 — especificação do agente
+  → ai--agno                           — definição da persona, tools e workflow
+  → mattpocock:domain-modeling          — se houver memória, conhecimento ou múltiplas entidades
+  → dev--python-pro                     — implementação
+  → composio--apps                      — integrações necessárias
+  → dev--test-master                    — validação
+  → verification-before-completion      — checklist final
+```
+
+### Novo Time de Agentes de IA - (agno)
+```
+brainstorming                               — explora objetivo, casos de uso e limites do agente
+  → product--product-discovery              — valida problema, usuário e ROI da automação
+  → mattpocock:grilling                     — desafia premissas e encontra gaps cedo
+  → mattpocock:to-spec                      — transforma ideia em especificação executável
+  
+  → ai--agno                               — define agentes, team, workflow, tools e MCPs
+  → mattpocock:domain-modeling             — modela entidades, memória e contratos
+  → arch--senior-architect                 — arquitetura de ponta a ponta
+  → arch--api-designer                     — APIs, webhooks e contratos externos
+  → mattpocock:to-tickets                  — decomposição em tickets
+  → writing-plans (auto, superpowers)      — plano de execução detalhado
+  → dev--python-pro                        — implementação dos agentes e workflows
+  → db--postgres-pro                       — memória persistente, pgvector e banco
+  → composio--apps                         — integrações externas
+  
+  → dev--test-master                       — testes unitários, integração e avaliação
+  → composio--testing | playwright         — validação de fluxos completos
+  → arch--monitoring-expert                — observabilidade, tracing e métricas
+
+  → dev--security-reviewer                 — revisão de segurança
+  → claude-security                        — auditoria profunda multi-agente
+
+  → verification-before-completion        — validação final
+  → code-review:code-review               — revisão final do código
+```
+
+### Workflows (n8n)
 ```
 n8n--using-skills (auto, SessionStart)
   → n8n--workflow-lifecycle            — design → organização → publicação
@@ -204,6 +252,40 @@ n8n--using-skills (auto, SessionStart)
      data-tables / binary-and-data / loops / subworkflows / error-handling /
      credentials-and-security / extending-mcp)
   → n8n--debugging                     — se algo quebrar no meio do processo
+```
+
+### Workflows Multi-Agente (n8n + agno)
+```
+brainstorming (superpowers)                 — explora objetivo, casos de uso e limites do agente
+  → product--product-discovery              — valida problema, usuário e ROI da automação
+  → mattpocock:grilling                     — desafia premissas e encontra gaps cedo
+  → mattpocock:to-spec                      — transforma ideia em especificação executável
+
+  → ai--agno                               — define agentes, team, workflow, tools e MCPs
+  → mattpocock:domain-modeling             — modela entidades, memória e contratos
+  → arch--senior-architect                 — arquitetura de ponta a ponta
+  → arch--api-designer                     — APIs, webhooks e contratos externos
+
+  → mattpocock:to-tickets                  — decomposição em tickets
+  → writing-plans (auto, superpowers)      — plano de execução detalhado
+
+  → dev--python-pro                        — implementação dos agentes e workflows
+  → db--postgres-pro                       — memória persistente, pgvector e banco
+  → composio--apps                         — integrações externas
+  → n8n--workflow-lifecycle                — ciclo de vida do workflow
+  → n8n--subworkflows                      — se necessário desenho de subworkflows
+  → n8n--extending-mcp                     — criação de ferramentas MCP via n8n
+
+  → dev--test-master                       — testes unitários, integração e avaliação
+  → composio--testing | playwright         — validação de fluxos completos
+  → arch--monitoring-expert                — observabilidade, tracing e métricas
+
+  → dev--security-reviewer                 — revisão de segurança
+  → claude-security                        — auditoria profunda multi-agente
+
+  → verification-before-completion        — validação final
+  → code-review:code-review               — revisão final do código
+  → executing-plans (superpowers)
 ```
 
 ### API + banco de dados
@@ -217,8 +299,9 @@ arch--api-designer                     — modela recursos e contrato OpenAPI
 ### Deploy e infraestrutura
 ```
 arch--devops-engineer                  — Dockerfile, CI/CD, Kubernetes, Terraform
+  → dev--security-reviewer             — auditoria antes da infra validada
   → arch--monitoring-expert            — dashboards, alertas, tracing no que subiu
-  → dev--security-reviewer             — auditoria antes de ir pra produção
+  → dev--security-reviewer             — auditoria para validação pós infra, antes de ir pra produção
   → commit-commands (plugin)           — commit/push/PR do que foi gerado
 ```
 
@@ -235,13 +318,36 @@ data--pandas-pro                       — limpeza, merge, agregação de DataFr
   → dataviz (skill de visualização)    — transforma resultado em gráfico/dashboard
 ```
 
-### Criar ou manter skill
+### Produto / planejamento
 ```
-skill-reviewer (agente, antes de instalar/criar)
-  → meta--skill-audit                  — checa duplicata contra locais + oficiais
-  → skill-creator (plugin)             — cria/edita a skill nova
-  → meta--skill-lint                   — valida frontmatter no final
-  → hookify (plugin)                   — automatiza o lint como hook, se for rodar toda hora
+product--product-discovery             — valida hipótese antes de comprometer time
+  → mattpocock:to-spec → to-tickets    — vira spec técnica e tickets
+  → product--project-planner           — planeja a parte não-técnica (timeline, recurso, evento)
+```
+
+### Arquitetura de sistema
+```
+brainstorming
+  → product--product-discovery       - se necessário descobrir e definir produto
+  → mattpocock:domain-modeling
+  → arch--senior-architect
+  → arch--api-designer
+  → mattpocock:grilling
+  → mattpocock:to-spec
+  → mattpocock:to-tickets
+```
+
+### Evoluir/Ajustar Arquitetura Existente
+```
+learn--project-mentor
+  → tools--graphify
+  → mattpocock:wayfinder
+
+  → mattpocock:improve-codebase-architecture
+  → arch--senior-architect
+
+  → mattpocock:to-tickets
+  → writing-plans
 ```
 
 ### Compressão de output (caveman)
@@ -252,11 +358,4 @@ tools--caveman                         — ativa modo comprimido na conversa
   → tools--caveman-compress            — comprime memory file (CLAUDE.md, todos)
   → tools--cavecrew                    — decide quando delegar pra subagente caveman em vez de inline
   → tools--caveman-stats               — confere economia real de token da sessão
-```
-
-### Produto / planejamento
-```
-product--product-discovery             — valida hipótese antes de comprometer time
-  → mattpocock:to-spec → to-tickets    — vira spec técnica e tickets
-  → product--project-planner           — planeja a parte não-técnica (timeline, recurso, evento)
 ```
