@@ -36,6 +36,7 @@ Prefira estas antes de qualquer skill custom equivalente. Ficam em `~/.claude/pl
 | **hookify** (Anthropic, 2026-09-15) | cria hooks a partir de padrões de conversa | Analisa a conversa em busca de comportamentos repetidos e gera hooks (PostToolUse, etc.) pra automatizar sem editar `settings.json` na mão — ex.: rodar `meta--skill-lint` sozinho após cada edição de skill |
 | **commit-commands** (Anthropic, 2026-09-15) | comandos de commit/push/PR | Agiliza o fluxo git (commit → push → PR). Complementa `tools--caveman-commit` (aquele comprime a mensagem, este cuida do fluxo) |
 | **playwright** (Anthropic, 2026-09-15) | MCP oficial de browser automation | Controla navegador real via protocolo MCP (não skill). Overlap parcial com `composio--testing`: prefira playwright pra e2e real e automação de browser, `composio--testing` pra checagem rápida de app local |
+| **codex-plugin-cc** (openai-codex) | `/codex:review`, `/codex:adversarial-review`, `/codex:rescue`, `/codex:transfer`, `/codex:status`, `/codex:result`, `/codex:setup` | Claude Code → Codex CLI local, uso 100% manual (sem hook automático). Codex atua como revisor independente, revisor adversarial (arquitetura/segurança) e validador/executor de teste em tarefas delimitadas — nunca implementação livre nem decisão final. Ver `tools--codex-workflow` pro playbook completo |
 
 ---
 
@@ -124,6 +125,7 @@ Protocolo completo pra workflows n8n. `using-skills` é o roteador always-on car
 | `tools--caveman-review` | Gera comentário de PR comprimido: uma linha por achado, local + problema + fix, sem elogio nem scope creep |
 | `tools--caveman-stats` | Mostra uso real de token da sessão atual, lido direto do log de sessão (sem estimativa do modelo) |
 | `tools--cavecrew` | Decide quando vale delegar a um subagente estilo-caveman em vez de fazer inline: `cavecrew-investigator` pra localizar código, `cavecrew-builder` pra edição de 1-2 arquivos, `cavecrew-reviewer` pra revisar diff — reduz ~60% do tamanho do resultado injetado de volta no contexto principal |
+| `tools--codex-workflow` | Playbook de delegação Claude Code ↔ Codex: tabela de responsabilidade, fluxo de 7 passos (planejar → implementar incremental → `/codex:review` → `/codex:adversarial-review` em mudança de risco → classificar achado antes de aplicar → `/codex:rescue` delimitado → validar teste) e 6 regras operacionais (um agente escreve por vez, revisar antes de corrigir, tarefa delimitada, checar diff sempre, não misturar objetivo, decisão final é sua) |
 | `tools--context7-mcp` | Busca documentação atualizada de biblioteca/framework (React, Vue, Next.js, Prisma, Supabase etc.) via Context7, evitando resposta desatualizada de memória |
 | `tools--graphify` | Transforma qualquer entrada (código, docs, papers, imagem, vídeo) num knowledge graph persistente com detecção de comunidade e ferramentas de query/path/explain — trata perguntas sobre arquitetura do codebase como query nesse grafo |
 
