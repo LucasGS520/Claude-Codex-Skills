@@ -8,6 +8,10 @@
     {
       "name": "mattpocock",
       "url": "https://github.com/mattpocock/skills.git"
+    },
+    {
+      "name": "openai-codex",
+      "url": "https://github.com/openai/codex-plugin-cc"
     }
   ],
   "plugins": [
@@ -23,6 +27,7 @@
     "commit-commands@claude-plugins-official",
     "playwright@claude-plugins-official",
     "caveman@caveman",
-    "mattpocock-skills@mattpocock"
+    "mattpocock-skills@mattpocock",
+    "codex@openai-codex"
   ]
 }
