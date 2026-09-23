@@ -3,7 +3,12 @@
 ================================================================================
 
 O fluxo de trabalho onde utilizamos o Claude Code, como a ferramenta principal e podemos chamar o Codex (via pluguin) como ferramenta, na mesma sessão, sem trocar de terminal.
-> Não cobre Codex standalone (terminal separado) — isso fica em `.codex/` + `AGENTS.md`.
+
+**Referências:**
+* [Documentação Oficial e de Produto](README.md)
+* [Regras Arquiteturais e de Execução Claude](CLAUDE.md)
+* [Regras Arquiteturais e de Execução Codex](AGENTS.md)
+
 > Guia explicativo sobre o uso — a política operacional que o Claude Code segue deve existir no respectivo projeto. Se não existir, necessário criar um arquivo contendo a **política de execução e regras do Claude Code**. 
 
 ================================================================================
@@ -12,7 +17,7 @@ O fluxo de trabalho onde utilizamos o Claude Code, como a ferramenta principal e
 
 Plugin `openai-codex`. Não é uma segunda IA "dentro" de mim — é uma ponte: um script (`codex-companion.mjs`) que chama o binário real do Codex CLI e devolve o resultado pra minha sessão. Setup já feito, `/codex:setup` confirma:
 
-Retorna `ready`, versão do `codex-cli`, status de auth, e se o stop-review-gate tá ligado (está).
+Retorna `ready`, versão do `codex-cli`, status de auth, e se o stop-review-gate tá ligado. **Padrão: desligado** (`reviewGateEnabled: false`)
 
 ================================================================================
 ## 2. PEÇAS DO PLUGIN
@@ -44,10 +49,12 @@ Guia de uso e comandos do pluguin, quando executado em segundo plano, você pode
 
 ---
 
-### 3.2. `/codex:review [--wait|--background] [--base <ref>] [--scope auto|working-tree|branch]`
+### 3.2. `/codex:review [--wait|--background] [--base <ref>] [--scope auto|working-tree|branch] [--model <modelo>]`
 **Disparo Manual:** comando tem `disable-model-invocation: true`, Claude não consegue rodar sozinho por nenhum caminho.
 
 **O quê:** Executa uma revisão padrão do Codex sobre o seu trabalho atual (git state atual: working tree ou branch vs `--base`). Ela oferece a mesma qualidade de revisão de código que executar `/review` diretamente dentro do Codex, só acha problema, nunca corrige, nunca aplica patch.
+
+**Modelo e esforço:** na versão instalada do plugin, `--model` (ou `-m`) escolhe o modelo da revisão nativa. `--effort` não é aceito nesse comando: a revisão herda `model_reasoning_effort` da configuração ativa do Codex.
 
 **Quando usar:**
    * Uma revisão das suas alterações atuais ainda não commitadas.
@@ -63,7 +70,7 @@ Este comando não é configurável (steerable) e não aceita texto personalizado
 
 ---
 
-### 3.3. `/codex:adversarial-review [--wait|--background] [--base <ref>] [--scope ...] [foco]`
+### 3.3. `/codex:adversarial-review [--wait|--background] [--base <ref>] [--scope ...] [--model <modelo>] [foco]`
 **Disparo Manual:** mesma trava do `review`.
 
 **O quê:** Executa uma revisão direcionável (steerable) que questiona a implementação e o design escolhidos, pode ser usada para testar hipóteses, trade-offs, modos de falha e avaliar se outra abordagem teria sido mais segura ou simples.
@@ -88,7 +95,11 @@ Diferentemente de `/codex:review`, aceita texto adicional de foco após as flags
 **Quando Claude avisa e despacha (após sua confirmação rápida):**
    * Claude travou num bug depois de tentar `systematic-debugging`
    * Vale 2ª implementação independente antes de decidir caminho
-   * Precisa validar um teste de verdade (modo leitura no prompt) — depois do implementador entregar comando+saída.
+   * Uma task ou bloco autocontido do plano é candidato a rodar em Codex em vez de Claude — mecânico o bastante pra não precisar do entendimento de produto que só Claude carrega, grande o bastante pra valer a pena poupar a cota Claude. Write-capable por padrão: Codex implementa a task de verdade, não só investiga.
+
+**Um executor ativo por bloco, nunca dois.** A partir do momento em que Codex assume um bloco por este gatilho, Claude não edita os mesmos arquivos nem despacha `sira-implementador` em paralelo sobre eles — o bloco é do Codex até ele entregar.
+
+**Nunca:** usar `/codex:rescue` em modo leitura só pra revalidar um teste que o implementador já entregou com comando+saída reais — repetir com Codex é desperdício, não segunda opinião.
 
 **Parâmetros que Claude escolhe ao despachar:**
    * `--background` se a investigação parecer grande, `--wait` se pequena
@@ -166,31 +177,33 @@ Solicitações subsequentes de rescue podem continuar a tarefa mais recente do C
 | Aviso + confirmação rápida, Claude despacha | `rescue`, nos 3 gatilhos da seção 3.4 | Claude avisa o que vai mandar e por quê, espera um sinal seu (não o comando digitado), despacha ele mesmo. Fora dos 3 gatilhos, volta a ser sugestão pura. |
 | Leitura pura, Claude roda sem pedir | `status`, `result`, `setup` sem flag | Não mudam estado, não invocam o modelo Codex. Uso: conferir se um job em `--background` já terminou, ou responder "terminou?". Nunca em loop de polling — só quando o resultado muda a próxima ação. |
 
-Hook `Stop`: dispara sozinho ao encerrar sessão — comportamento do plugin, não ação do Claude. Se travar (Codex indisponível/cota esgotada), Claude diagnostica e sugere o comando que resolve (ex. `/codex:setup --disable-review-gate`) — **nunca roda esse comando sozinho**, essa parte da regra antiga continua de pé.
+Hook `Stop`: dispara sozinho ao encerrar sessão **só se o gate estiver ligado** (padrão deste projeto é desligado — ver seção 1) — comportamento do plugin, não ação do Claude. Se travar (Codex indisponível/cota esgotada), Claude diagnostica e sugere o comando que resolve (ex. `/codex:setup --disable-review-gate`) — **nunca roda esse comando sozinho**.
 
 ================================================================================
 ## 5. FLUXO DE TRABALHO IDEAL
 ================================================================================
+
 
 * **Task mecânica/simples (typo, rename, config, cache):** nada de Codex. Eu edito ou uso `cavecrew`, sem custo extra.
 
 * **Task de julgamento normal (endpoint novo, tela, lógica sem PII/transação):** `sira-implementador` implementa, `sira-revisor` ou `cavecrew` revisa. Codex não entra — reservado pra risco.
 
 * **Task de risco (acesso, transação, PII, migration):**
-  1. `sira-implementador` entrega com evidência (comando + saída real).
-  2. Claude avisa: "task de risco, roda `/codex:review` ou `/codex:adversarial-review`" — comando pronto, copiável (trava técnica, só disparo manual). Se for caso de investigação/diagnóstico/fix explícito, avisa o que será mandado, espera confirmação rápida, e próprio Claude despacha `codex:rescue`.
-  3. Acompanha sozinho com `/codex:status`/`/codex:result` (leitura pura, sem permissão) quando precisar do resultado pra continuar.
-  4. Claude le o achado, apresenta por severidade, **para e pergunta** o que você quer corrigido antes de tocar em qualquer arquivo.
+  1. Entrega com evidência (comando + saída real).
+  2. Task fica registrada como parte do **lote de risco** em andamento — não pausa sozinha. Continuous execution segue: próxima task implementa normal, revisor de task (Claude) confere normal.
+  3. O lote fecha quando não sobra task de risco pendente no plano, ou quando uma task não-risco vai construir em cima de uma task de risco ainda não auditada. Só aí Claude avisa: "esse lote pede revisão de risco, roda `/codex:review --base <SHA-inicial-do-lote> --model gpt-5.6-terra` ou `/codex:adversarial-review`" — comando pronto, copiável (trava técnica, só disparo manual).
+  4. Acompanha sozinho com `/codex:status`/`/codex:result` (leitura pura, sem permissão) quando precisar do resultado pra continuar.
+  5. Claude lê o achado, apresenta por severidade, **para e pergunta** o que você quer corrigido antes de tocar em qualquer arquivo. Achado que aponta pra uma task específica dentro do lote gera fix só naquela task.
 
-* **Dentro de `subagent-driven-development` (execução por subagentes, plano com várias tasks):** Codex é a **primeira opção**, não uma alternativa — pra toda task de risco E pra revisão final de branch. Antes de despachar qualquer revisor Claude, para e da o comando Codex daquela task específica; só cai para o revisor Claude se você pedir pra pular ou Codex estiver indisponível. Isso vale **por ocorrência** — um plano com 4 tasks de risco pausa 4 vezes, não uma.
+* **Dentro de `subagent-driven-development` (execução por subagentes, plano com várias tasks):** Codex é a **primeira opção**, não uma alternativa — pra todo lote de risco E pra revisão final de branch. Cadência é **por lote, não por ocorrência** — um plano com 4 tasks de risco pausa pro Codex uma vez (sobre o diff acumulado das 4), não quatro vezes. Um Codex por task individual já foi tentado e gerou desalinhamento real de custo (Claude carregando volume que devia estar dividido com Codex) — não é mais o padrão.
 
-* **Brief com critério de teste (qualquer task):** Depois que o implementador entrega comando+saída, avisa e despacha `codex:rescue` em modo leitura, após sua confirmação rápida, pra confirmar de forma independente. Se você disser pra pular, segue com o que o implementador reportou.
+* **Brief com critério de teste (qualquer task):** implementador entrega comando+saída reais — isso já é evidência, não pedido de segunda opinião. Conferência (quando fizer sentido) é direto, nunca com `codex:rescue`. Repetir com Codex um teste que já tem saída real registrada é desperdício, não revisão independente.
 
 * **Claude travou num bug, ou quer 2ª opinião antes de decidir caminho:** avisa o que será mandado, espera confirmação rápida e assim, Claude despacha `/codex:rescue` (`--wait` se parecer rápido, `--background` se parecer longo). Ler a saída do Codex e devolver verbatim, sem reescrever.
 
-* **Revisão de branch inteira:** é o padrão da revisão final de `subagent-driven-development` agora, não só uma opção avulsa — Claude entrega o comando `/codex:review --scope branch --base <base>` sozinho nesse ponto do fluxo. Fora desse contexto, mesma coisa por sua iniciativa a qualquer momento (ou `adversarial-review` pra desafiar decisão de design) — sempre `disable-model-invocation` do lado do Claude.
+* **Revisão de branch inteira:** é a **prioridade 1** da revisão final de `subagent-driven-development` (seção 2.3 da skill) — substitui a revisão completa em Claude no caso normal, não soma com ela. Claude entrega o comando `/codex:review --scope branch --base <merge-base> --model gpt-5.6-sol` sozinho nesse ponto do fluxo, um disparo só, tier mais capaz do Codex (`gpt-5.6-sol`, seção 7). Claude dividido por área (Claude/Opus lendo o diff em partes) só entra como fallback, se Codex estiver indisponível ou você pedir pra pular. Fora desse contexto, mesmo comando por sua iniciativa a qualquer momento (ou `adversarial-review` pra desafiar decisão de design) — sempre `disable-model-invocation` do lado do Claude.
 
-* **Fim de sessão:** Stop-review-gate roda sozinho, sem ação sua — isso é o hook do plugin. Isso NÃO substitui a revisão de risco do passo acima — é a rede de segurança final, não a revisão principal. Se o gate travar (Codex indisponível/cota esgotada), avisa e sugere o comando pra desligar — nunca desliga sozinho.
+* **Fim de sessão:** Stop-review-gate, **quando ligado**, roda sozinho ao encerrar sessão — isso é o hook do plugin, não ação do Claude. Padrão deste projeto é desligado (ver seção 1) — nesse caso o hook simplesmente não dispara. Quando ligado, isso NÃO substitui a revisão de risco do passo acima — é rede de segurança final, não revisão principal. Se travar (Codex indisponível/cota esgotada), Claude avisa e sugere o comando pra desligar — nunca desliga sozinho.
 
 * **Movendo o trabalho para Codex:** Tarefas delegadas e execuções do stop gate também podem ser retomadas diretamente dentro do Codex usando `codex resume`, podedo informar explicitamente o ID da sessão obtido por `/codex:result` ou `/codex:status`
 
